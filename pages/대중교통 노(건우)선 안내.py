@@ -1,7 +1,9 @@
 
+import streamlit as st
+from deep_translator import GoogleTranslator
+
 @st.cache_data(show_spinner=False, ttl=3600)
 def translate_text(text, target_language):
-    """번역 결과를 캐시하고, 실패하면 원문을 반환합니다."""
     if target_language == "ko":
         return text
 
@@ -12,6 +14,7 @@ def translate_text(text, target_language):
         ).translate(text)
     except Exception:
         return text
+
 
 
 def tr(key, target_language):
