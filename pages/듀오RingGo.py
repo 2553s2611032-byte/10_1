@@ -1,5 +1,8 @@
 import streamlit as st
-
+import html
+import urllib.parse
+import urllib.request
+import json
 <!DOCTYPE html>
 <html lang="ko">
 <head>
