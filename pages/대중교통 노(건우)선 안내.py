@@ -2,6 +2,19 @@
 import streamlit as st
 from deep_translator import GoogleTranslator
 
+LANGUAGES = {
+    "한국어": "ko",
+    "English": "en",
+    "日本語": "ja",
+    "中文": "zh-CN",
+    "Español": "es",
+    "Français": "fr",
+    "Deutsch": "de",
+    "العربية": "ar",
+    "Tiếng Việt": "vi",
+    "ไทย": "th"
+}
+
 @st.cache_data(show_spinner=False, ttl=3600)
 def translate_text(text, target_language):
     if target_language == "ko":
