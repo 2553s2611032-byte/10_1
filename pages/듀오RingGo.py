@@ -1,5 +1,6 @@
 
 import random
+import html
 from io import BytesIO
 
 import streamlit as st
@@ -13,107 +14,38 @@ st.set_page_config(
     initial_sidebar_state="collapsed",
 )
 
-# ---------------- 디자인 ----------------
 st.markdown("""
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&family=Noto+Sans+KR:wght@400;500;700;900&display=swap');
-
-.stApp {
-    background: #f7f6f3;
-    color: #171717;
-    font-family: 'Nunito', 'Noto Sans KR', sans-serif;
-}
-.block-container {
-    max-width: 1250px;
-    padding: 1.3rem 2rem 3rem;
-}
-header {visibility: hidden;}
-#MainMenu {visibility: hidden;}
-footer {visibility: hidden;}
-
-.brand {
-    font-size: 29px;
-    font-weight: 900;
-    letter-spacing: -1.5px;
-    color: #f21e36;
-    padding: 3px 0 12px;
-}
-.brand span { color: #222; }
-
-.hero {
-    padding: 36px;
-    min-height: 290px;
-    border-radius: 23px;
-    color: white;
-    background:
-        radial-gradient(circle at 82% 20%, #7256ce 0, transparent 28%),
-        linear-gradient(115deg, #151526, #302348 58%, #9c304c);
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    margin: 15px 0 28px;
-}
-.hero-tag {
-    color: #ffb6c0;
-    font-weight: 800;
-    font-size: 12px;
-    letter-spacing: 2px;
-}
-.hero h1 {
-    color: white;
-    font-size: clamp(30px, 4vw, 48px);
-    font-weight: 900;
-    line-height: 1.18;
-    margin: 10px 0;
-}
-.hero p { color: #e9e6f2; font-size: 16px; }
-.section-title {
-    font-size: 22px;
-    font-weight: 900;
-    margin: 24px 0 5px;
-}
-.section-subtitle { color: #777; font-size: 13px; margin-bottom: 14px; }
-
-div.stButton > button {
-    border-radius: 12px;
-    font-weight: 800;
-    min-height: 43px;
-    border: 1px solid #e9e9ee;
-    transition: .2s;
-}
-div.stButton > button:hover {
-    border-color: #f21e36;
-    color: #f21e36;
-}
-div.stButton > button[kind="primary"] {
-    background: #f21e36;
-    color: white;
-    border: none;
-}
-div[data-testid="stVerticalBlockBorderWrapper"] {
-    background: white;
-    border-radius: 18px;
-    border: 1px solid #ececf0;
-    padding: 14px;
-}
-div[data-testid="stMetric"] {
-    background: white;
-    padding: 17px;
-    border: 1px solid #ececf0;
-    border-radius: 15px;
-}
-div[data-testid="stMetricValue"] { font-weight: 900; }
-.stTabs [data-baseweb="tab-list"] { gap: 10px; }
-.stTabs [data-baseweb="tab"] { border-radius: 10px; }
-div[data-testid="stExpander"] {
-    background: white;
-    border-radius: 13px;
-    border: 1px solid #e9e9ef;
+.stApp { background:#f7f6f3; color:#171717; font-family:'Nunito','Noto Sans KR',sans-serif; }
+.block-container { max-width:1250px; padding:1.3rem 2rem 3rem; }
+header,#MainMenu,footer {visibility:hidden;}
+.brand { display:flex; align-items:baseline; gap:9px; font-size:29px; font-weight:900; letter-spacing:-1.5px; color:#f21e36; padding:3px 0 12px; white-space:nowrap; }
+.brand .go {color:#222;}
+.brand .author {color:#888; font-size:12px; font-weight:600; letter-spacing:0;}
+.hero { padding:36px; min-height:270px; border-radius:23px; color:white; background:radial-gradient(circle at 82% 20%,#7256ce 0,transparent 28%),linear-gradient(115deg,#151526,#302348 58%,#9c304c); display:flex; flex-direction:column; justify-content:center; margin:15px 0 25px; }
+.hero-tag {color:#ffb6c0;font-weight:800;font-size:12px;letter-spacing:2px;}
+.hero h1 {color:white;font-size:clamp(30px,4vw,48px);font-weight:900;line-height:1.18;margin:10px 0;}
+.hero p {color:#e9e6f2;font-size:16px;}
+.section-title {font-size:22px;font-weight:900;margin:24px 0 5px;}
+.section-subtitle {color:#777;font-size:13px;margin-bottom:14px;}
+.panel {background:white;padding:18px;border-radius:16px;border:1px solid #e7eaf0;margin-bottom:12px;}
+div.stButton>button {border-radius:12px;font-weight:800;min-height:42px;border:1px solid #e9e9ee;transition:.2s;}
+div.stButton>button:hover {border-color:#f21e36;color:#f21e36;}
+div.stButton>button[kind="primary"] {background:#f21e36;color:white;border:none;}
+div[data-testid="stVerticalBlockBorderWrapper"] {background:white;border-radius:18px;border:1px solid #ececf0;padding:14px;}
+div[data-testid="stMetric"] {background:white;padding:16px;border:1px solid #ececf0;border-radius:15px;}
+div[data-testid="stMetricValue"] {font-weight:900;}
+div[data-testid="stExpander"] {background:white;border-radius:13px;border:1px solid #e9e9ef;}
+@media(max-width:700px) {
+ .block-container{padding:1rem .8rem 2rem}
+ .brand{font-size:22px;gap:6px}
+ .brand .author{font-size:10px}
+ .hero{padding:25px;min-height:230px}
 }
 </style>
 """, unsafe_allow_html=True)
 
-# ---------------- 데이터 ----------------
 WORDS = [
     ("안녕하세요", "Hello", "인사", "안녕하세요? 만나서 반가워요."),
     ("감사합니다", "Thank you", "인사", "도와주셔서 감사합니다."),
@@ -123,16 +55,16 @@ WORDS = [
     ("화장실", "Restroom", "장소", "화장실이 어디에 있어요?"),
     ("병원", "Hospital", "장소", "몸이 아파서 병원에 가요."),
     ("도와주세요", "Please help me", "긴급", "도움이 필요해요. 도와주세요."),
-    ("천천히 말씀해 주세요", "Please speak slowly", "대화", "죄송하지만 천천히 말씀해 주세요."),
-    ("잘 모르겠어요", "I don't understand", "대화", "이 표현을 잘 모르겠어요."),
+    ("천천히 말씀해 주세요", "Please speak slowly", "대화", "천천히 말씀해 주세요."),
+    ("잘 모르겠어요", "I don't understand", "대화", "죄송하지만 잘 모르겠어요."),
     ("약국", "Pharmacy", "장소", "약국에서 약을 사요."),
     ("버스 정류장", "Bus stop", "교통", "버스 정류장은 저쪽에 있어요."),
-    ("주민센터", "Community service center", "생활", "주민센터에서 서류를 발급받아요."),
+    ("주민센터", "Community service center", "생활", "주민센터에 가요."),
     ("주소", "Address", "생활", "주소를 적어 주세요."),
     ("왼쪽", "Left", "방향", "왼쪽으로 가세요."),
     ("오른쪽", "Right", "방향", "오른쪽으로 가세요."),
     ("한국어", "Korean language", "학습", "저는 한국어를 공부해요."),
-    ("약속", "Appointment / promise", "일상", "내일 친구와 약속이 있어요."),
+    ("약속", "Appointment / promise", "일상", "내일 약속이 있어요."),
 ]
 
 GRAMMAR = [
@@ -221,7 +153,7 @@ TOPIK = [
         "q": "학교___ 한국어를 배워요.",
         "options": ["에서", "을", "는", "와"],
         "answer": "에서",
-        "why": "행동이 일어나는 장소이므로 ‘에서’를 사용해요.",
+        "why": "배우는 행동이 일어나는 장소이므로 ‘에서’를 사용해요.",
     },
     {
         "q": "‘천천히 말씀해 주세요’의 뜻은?",
@@ -273,7 +205,6 @@ LANGUAGES = {
     "독일어": "de",
 }
 
-# ---------------- 상태 ----------------
 DEFAULTS = {
     "page": "홈",
     "learned": [],
@@ -292,13 +223,16 @@ DEFAULTS = {
     "exam_answers": {},
     "exam_submitted": False,
 }
+
 for key, value in DEFAULTS.items():
     if key not in st.session_state:
         st.session_state[key] = value
 
+
 def go(page):
     st.session_state.page = page
     st.rerun()
+
 
 def audio_for(text, lang="ko"):
     try:
@@ -309,38 +243,48 @@ def audio_for(text, lang="ko"):
     except Exception:
         return None
 
+
 def hero(title, subtitle):
     st.markdown(
         f'<div class="hero"><div class="hero-tag">DUORING GO · KOREAN LEARNING</div>'
-        f'<h1>{title}</h1><p>{subtitle}</p></div>',
+        f'<h1>{html.escape(title)}</h1><p>{html.escape(subtitle)}</p></div>',
         unsafe_allow_html=True,
     )
+
 
 def content_card(emoji, title, subtitle, target, color):
     with st.container(border=True):
         st.markdown(
             f'<div style="background:{color};border-radius:13px;padding:22px 10px;'
             f'text-align:center;font-size:42px">{emoji}</div>'
-            f'<h3 style="margin:13px 0 4px">{title}</h3>'
-            f'<p style="color:#777;font-size:13px;min-height:36px">{subtitle}</p>',
+            f'<h3 style="margin:13px 0 4px">{html.escape(title)}</h3>'
+            f'<p style="color:#777;font-size:13px;min-height:36px">{html.escape(subtitle)}</p>',
             unsafe_allow_html=True,
         )
         if st.button("지금 학습하기 →", key=f"card_{target}", use_container_width=True):
             go(target)
 
-# ---------------- 상단 메뉴 ----------------
+
+# 상단 브랜드 및 메뉴
 top1, top2 = st.columns([3, 7])
+
 with top1:
-    st.markdown('<div class="brand">듀오RING <span>GO</span></div>', unsafe_allow_html=True)
+    st.markdown(
+        '<div class="brand">듀오RING <span class="go">GO</span>'
+        '<span class="author">노건우</span></div>',
+        unsafe_allow_html=True,
+    )
+
 with top2:
-    nav = st.columns(6)
+    nav = st.columns(7)
     nav_items = [
-        ("홈", "🏠 홈"),
-        ("한글", "🔤 한글"),
-        ("번역", "🌐 번역"),
-        ("단어", "📚 단어"),
-        ("문법", "🧩 문법"),
-        ("시험", "📝 시험"),
+        ("홈", "홈"),
+        ("한글", "한글"),
+        ("번역", "번역"),
+        ("단어", "단어"),
+        ("문법", "문법"),
+        ("시험", "시험"),
+        ("기록", "기록"),
     ]
     for col, (label, target) in zip(nav, nav_items):
         with col:
@@ -349,21 +293,23 @@ with top2:
 
 st.divider()
 
-# ---------------- 홈 ----------------
-if st.session_state.page == "홈":
-    st.markdown("""
-    <div class="hero">
-      <div class="hero-tag">YOUR KOREAN JOURNEY STARTS HERE</div>
-      <h1>새로운 언어,<br>더 가까워지는 일상.</h1>
-      <p>한국어를 배우고 문화를 이해하며 자신 있게 소통해요.</p>
-    </div>
-    """, unsafe_allow_html=True)
 
-    if st.button("▶  오늘의 학습 시작하기", type="primary", use_container_width=True):
+# 홈 화면
+if st.session_state.page == "홈":
+    hero(
+        "새로운 언어, 더 가까워지는 일상.",
+        "한국어를 배우고 문화를 이해하며 자신 있게 소통해요.",
+    )
+
+    if st.button("▶ 오늘의 학습 시작하기", type="primary", use_container_width=True):
         go("단어")
 
     st.markdown('<div class="section-title">오늘의 학습 코스</div>', unsafe_allow_html=True)
-    st.markdown('<div class="section-subtitle">카드를 눌러 원하는 학습 공간으로 이동하세요.</div>', unsafe_allow_html=True)
+    st.markdown(
+        '<div class="section-subtitle">카드를 눌러 원하는 학습 공간으로 이동하세요.</div>',
+        unsafe_allow_html=True,
+    )
+
     cols = st.columns(4)
     with cols[0]:
         content_card("🔤", "한글 스타트", "자음과 모음부터 시작해요.", "한글", "#e6ecff")
@@ -375,19 +321,22 @@ if st.session_state.page == "홈":
         content_card("🧩", "쉬운 문법", "예문과 퀴즈로 문법을 배워요.", "문법", "#e6f7ec")
 
     st.markdown('<div class="section-title">인기 학습 콘텐츠</div>', unsafe_allow_html=True)
-    cols = st.columns([1, 1, 1])
-    with cols[0]:
-        st.markdown('<div class="panel"><div style="font-size:35px">💬</div><b>일상 대화</b><p style="color:#777">인사와 부탁 표현을 익혀요.</p></div>', unsafe_allow_html=True)
-        if st.button("대화 단어 보기", key="daily_words", use_container_width=True):
-            go("단어")
-    with cols[1]:
-        st.markdown('<div class="panel"><div style="font-size:35px">🎯</div><b>실전 모의시험</b><p style="color:#777">TOPIK 유형 연습 문제를 풀어요.</p></div>', unsafe_allow_html=True)
-        if st.button("시험 보러 가기", key="daily_exam", use_container_width=True):
-            go("시험")
-    with cols[2]:
-        st.markdown('<div class="panel"><div style="font-size:35px">📈</div><b>나의 학습 기록</b><p style="color:#777">학습 진도를 확인해요.</p></div>', unsafe_allow_html=True)
-        if st.button("기록 확인하기", key="daily_stats", use_container_width=True):
-            go("기록")
+    cols = st.columns(3)
+    features = [
+        ("💬", "일상 대화", "인사와 부탁 표현을 익혀요.", "단어", "대화 단어 보기"),
+        ("🎯", "실전 모의시험", "TOPIK 유형 연습 문제를 풀어요.", "시험", "시험 보러 가기"),
+        ("📈", "나의 학습 기록", "학습 진도를 확인해요.", "기록", "기록 확인하기"),
+    ]
+
+    for col, (emoji, title, desc, target, label) in zip(cols, features):
+        with col:
+            st.markdown(
+                f'<div class="panel"><div style="font-size:35px">{emoji}</div>'
+                f'<b>{title}</b><p style="color:#777">{desc}</p></div>',
+                unsafe_allow_html=True,
+            )
+            if st.button(label, key=f"feature_{target}", use_container_width=True):
+                go(target)
 
     st.markdown('<div class="section-title">나의 학습 현황</div>', unsafe_allow_html=True)
     a, b, c = st.columns(3)
@@ -395,83 +344,119 @@ if st.session_state.page == "홈":
     b.metric("퀴즈 정답", f"{st.session_state.word_score + st.session_state.grammar_score}개")
     c.metric("시험 응시", f"{len(st.session_state.exam_history)}회")
 
-# ---------------- 한글 ----------------
+
+# 한글 화면
 elif st.session_state.page == "한글":
     hero("한글 학습실", "자음과 모음을 익히고 글자를 읽는 연습을 해요.")
     tab1, tab2, tab3 = st.tabs(["자음", "모음", "글자 조합"])
+
     consonants = [
-        ("ㄱ", "기역", "가방"), ("ㄴ", "니은", "나무"), ("ㄷ", "디귿", "다리"),
-        ("ㄹ", "리을", "라디오"), ("ㅁ", "미음", "모자"), ("ㅂ", "비읍", "바나나"),
-        ("ㅅ", "시옷", "사과"), ("ㅇ", "이응", "아이"), ("ㅈ", "지읒", "자동차"),
-        ("ㅊ", "치읓", "친구"), ("ㅋ", "키읔", "커피"), ("ㅌ", "티읕", "토마토"),
+        ("ㄱ", "기역", "가방"), ("ㄴ", "니은", "나무"),
+        ("ㄷ", "디귿", "다리"), ("ㄹ", "리을", "라디오"),
+        ("ㅁ", "미음", "모자"), ("ㅂ", "비읍", "바나나"),
+        ("ㅅ", "시옷", "사과"), ("ㅇ", "이응", "아이"),
+        ("ㅈ", "지읒", "자동차"), ("ㅊ", "치읓", "친구"),
+        ("ㅋ", "키읔", "커피"), ("ㅌ", "티읕", "토마토"),
         ("ㅍ", "피읖", "포도"), ("ㅎ", "히읗", "하늘"),
     ]
+
     vowels = [
-        ("ㅏ", "아", "a"), ("ㅑ", "야", "ya"), ("ㅓ", "어", "eo"),
-        ("ㅕ", "여", "yeo"), ("ㅗ", "오", "o"), ("ㅛ", "요", "yo"),
-        ("ㅜ", "우", "u"), ("ㅠ", "유", "yu"), ("ㅡ", "으", "eu"),
-        ("ㅣ", "이", "i"), ("ㅐ", "애", "ae"), ("ㅔ", "에", "e"),
+        ("ㅏ", "아", "a"), ("ㅑ", "야", "ya"),
+        ("ㅓ", "어", "eo"), ("ㅕ", "여", "yeo"),
+        ("ㅗ", "오", "o"), ("ㅛ", "요", "yo"),
+        ("ㅜ", "우", "u"), ("ㅠ", "유", "yu"),
+        ("ㅡ", "으", "eu"), ("ㅣ", "이", "i"),
+        ("ㅐ", "애", "ae"), ("ㅔ", "에", "e"),
     ]
+
     with tab1:
         cols = st.columns(4)
         for i, (letter, name, example) in enumerate(consonants):
             with cols[i % 4]:
-                st.markdown(f'<div class="panel" style="text-align:center"><h1>{letter}</h1><b>{name}</b><p>{example}</p></div>', unsafe_allow_html=True)
+                st.markdown(
+                    f'<div class="panel" style="text-align:center">'
+                    f'<h1>{letter}</h1><b>{name}</b><p>{example}</p></div>',
+                    unsafe_allow_html=True,
+                )
+
     with tab2:
         cols = st.columns(4)
         for i, (letter, example, sound) in enumerate(vowels):
             with cols[i % 4]:
-                st.markdown(f'<div class="panel" style="text-align:center"><h1>{letter}</h1><b>{example}</b><p>로마자: {sound}</p></div>', unsafe_allow_html=True)
-    with tab3:
-        st.markdown('<div class="panel"><h2>ㄱ + ㅏ = 가</h2><h2>ㄴ + ㅏ = 나</h2><h2>ㅎ + ㅏ + ㄴ = 한</h2><h2>한 + 국 + 어 = 한국어</h2></div>', unsafe_allow_html=True)
+                st.markdown(
+                    f'<div class="panel" style="text-align:center">'
+                    f'<h1>{letter}</h1><b>{example}</b><p>로마자: {sound}</p></div>',
+                    unsafe_allow_html=True,
+                )
 
-# ---------------- 번역 ----------------
+    with tab3:
+        st.markdown(
+            '<div class="panel"><h2>ㄱ + ㅏ = 가</h2>'
+            '<h2>ㄴ + ㅏ = 나</h2><h2>ㅎ + ㅏ + ㄴ = 한</h2>'
+            '<h2>한 + 국 + 어 = 한국어</h2></div>',
+            unsafe_allow_html=True,
+        )
+
+
+# 번역 화면
 elif st.session_state.page == "번역":
     hero("번역 & 발음", "다른 언어를 한국어로 번역하고 발음을 들어 보세요.")
     language = st.selectbox("입력 언어", list(LANGUAGES.keys()))
     source = st.text_area("번역할 단어나 문장", placeholder="예: I need help.", height=130)
+
     if st.button("한국어로 번역하기", type="primary", use_container_width=True):
         if not source.strip():
             st.warning("먼저 번역할 내용을 입력해 주세요.")
         else:
             try:
                 st.session_state.translated = GoogleTranslator(
-                    source=LANGUAGES[language], target="ko"
+                    source=LANGUAGES[language],
+                    target="ko",
                 ).translate(source.strip())
             except Exception:
                 st.error("번역에 실패했어요. 인터넷 연결을 확인해 주세요.")
+
     if st.session_state.translated:
         st.markdown("### 번역 결과")
-        st.markdown(f'<div class="panel"><h2>{st.session_state.translated}</h2></div>', unsafe_allow_html=True)
+        st.markdown(
+            f'<div class="panel"><h2>{html.escape(st.session_state.translated)}</h2></div>',
+            unsafe_allow_html=True,
+        )
         if st.button("🔊 한국어 발음 듣기", use_container_width=True):
             audio = audio_for(st.session_state.translated)
             if audio:
                 st.audio(audio, format="audio/mp3")
             else:
                 st.warning("음성 생성에 실패했어요. 인터넷 연결을 확인해 주세요.")
-        st.caption("자동 번역은 문맥에 따라 어색할 수 있으니 중요한 내용은 다시 확인해 주세요.")
+        st.caption("자동 번역은 문맥에 따라 어색할 수 있으니 중요한 내용은 확인해 주세요.")
 
-# ---------------- 단어 ----------------
+
+# 단어 화면
 elif st.session_state.page == "단어":
     hero("생활 한국어 단어", "매일 자주 쓰는 단어를 배우고 발음을 연습해요.")
     search = st.text_input("단어 검색", placeholder="한국어 또는 영어로 검색")
+
     for ko, en, category, example in WORDS:
-        if search and search.lower() not in ko.lower() and search.lower() not in en.lower():
+        if search and search.casefold() not in ko.casefold() and search.casefold() not in en.casefold():
             continue
-        with st.expander(f"{ko}  ·  {en}"):
+
+        with st.expander(f"{ko} · {en}"):
             st.caption(f"분류: {category}")
             st.write(f"예문: {example}")
             a, b = st.columns(2)
+
             with a:
                 if st.button("학습 완료", key=f"learn_{ko}", use_container_width=True):
                     if ko not in st.session_state.learned:
                         st.session_state.learned.append(ko)
                     st.success("학습 기록에 추가했어요.")
+
             with b:
                 if st.button("복습 목록에 저장", key=f"save_{ko}", use_container_width=True):
                     if ko not in st.session_state.saved:
                         st.session_state.saved.append(ko)
                     st.success("복습 목록에 저장했어요.")
+
             if st.button("🔊 발음 듣기", key=f"audio_{ko}"):
                 audio = audio_for(ko)
                 if audio:
@@ -481,6 +466,7 @@ elif st.session_state.page == "단어":
 
     st.divider()
     st.markdown("### 단어 퀴즈")
+
     if st.button("새 문제 받기"):
         correct = random.choice(WORDS)
         wrong = random.sample([v for v in WORDS if v != correct], 3)
@@ -492,7 +478,12 @@ elif st.session_state.page == "단어":
     q = st.session_state.word_q
     if q:
         st.write(f"**‘{q['correct'][1]}’의 한국어 표현은 무엇일까요?**")
-        choice = st.radio("정답 선택", q["options"], key="word_choice")
+        choice = st.radio(
+            "정답 선택",
+            q["options"],
+            key=f"word_choice_{st.session_state.word_total}_{st.session_state.word_done}",
+        )
+
         if st.button("정답 확인", disabled=st.session_state.word_done):
             st.session_state.word_done = True
             st.session_state.word_total += 1
@@ -503,9 +494,11 @@ elif st.session_state.page == "단어":
                 st.error(f"정답은 ‘{q['correct'][0]}’예요.")
             st.info(q["correct"][3])
 
-# ---------------- 문법 ----------------
+
+# 문법 화면
 elif st.session_state.page == "문법":
     hero("쉬운 한국어 문법", "설명과 예문으로 자연스러운 문장을 만들어 봐요.")
+
     for item in GRAMMAR:
         with st.expander(item["title"]):
             st.write(item["desc"])
@@ -515,13 +508,20 @@ elif st.session_state.page == "문법":
 
     st.divider()
     st.markdown("### 문법 퀴즈")
+
     if st.button("새 문법 문제"):
         st.session_state.grammar_q = random.choice(GRAMMAR)
         st.session_state.grammar_done = False
+
     q = st.session_state.grammar_q
     if q:
         st.write(f"**{q['q']}**")
-        choice = st.radio("알맞은 답을 고르세요.", q["options"], key="grammar_choice")
+        choice = st.radio(
+            "알맞은 답을 고르세요.",
+            q["options"],
+            key=f"grammar_choice_{st.session_state.grammar_total}_{st.session_state.grammar_done}",
+        )
+
         if st.button("정답 확인", disabled=st.session_state.grammar_done):
             st.session_state.grammar_done = True
             st.session_state.grammar_total += 1
@@ -532,11 +532,13 @@ elif st.session_state.page == "문법":
                 st.error(f"정답은 ‘{q['answer']}’예요.")
             st.info(q["why"])
 
-# ---------------- 모의시험 ----------------
+
+# 모의시험 화면
 elif st.session_state.page == "시험":
     hero("한국어 실전 모의시험", "TOPIK 유형을 참고해 새로 만든 연습 문제를 풀어 보세요.")
     st.caption("공식 TOPIK 기출문제가 아닌 자체 제작 연습 문제입니다.")
     count = st.selectbox("문제 수", [5, 8, 10])
+
     if st.button("시험 시작 / 새 시험", type="primary", use_container_width=True):
         st.session_state.exam_questions = random.sample(TOPIK, count)
         st.session_state.exam_submitted = False
@@ -545,41 +547,65 @@ elif st.session_state.page == "시험":
     questions = st.session_state.exam_questions
     if questions:
         for i, q in enumerate(questions):
-            st.markdown(f'<div class="panel"><b>문제 {i+1}. {q["q"]}</b></div>', unsafe_allow_html=True)
+            st.markdown(
+                f'<div class="panel"><b>문제 {i+1}. {html.escape(q["q"])}</b></div>',
+                unsafe_allow_html=True,
+            )
             st.session_state.exam_answers[i] = st.radio(
-                f"{i+1}번 답", q["options"], index=None,
+                f"{i+1}번 답",
+                q["options"],
+                index=None,
                 key=f"exam_{len(questions)}_{i}",
             )
-        if st.button("시험 제출", disabled=st.session_state.exam_submitted, use_container_width=True):
+
+        if st.button(
+            "시험 제출",
+            disabled=st.session_state.exam_submitted,
+            use_container_width=True,
+        ):
             st.session_state.exam_submitted = True
             score = sum(
                 1 for i, q in enumerate(questions)
                 if st.session_state.exam_answers.get(i) == q["answer"]
             )
-            st.session_state.exam_history.append({"score": score, "total": len(questions)})
+            st.session_state.exam_history.append(
+                {"score": score, "total": len(questions)}
+            )
 
         if st.session_state.exam_submitted:
             score = sum(
                 1 for i, q in enumerate(questions)
                 if st.session_state.exam_answers.get(i) == q["answer"]
             )
-            st.metric("시험 점수", f"{score} / {len(questions)}", f"{round(score / len(questions) * 100)}%")
+            st.metric(
+                "시험 점수",
+                f"{score} / {len(questions)}",
+                f"{round(score / len(questions) * 100)}%",
+            )
+
             for i, q in enumerate(questions):
                 chosen = st.session_state.exam_answers.get(i)
                 if chosen == q["answer"]:
                     st.success(f"{i+1}번 정답: {q['answer']}")
                 else:
-                    st.error(f"{i+1}번 정답: {q['answer']} (내 답: {chosen or '미응답'})")
+                    st.error(
+                        f"{i+1}번 정답: {q['answer']} "
+                        f"(내 답: {chosen or '미응답'})"
+                    )
                 st.caption(q["why"])
     else:
         st.info("시험 시작을 눌러 문제를 받아 보세요.")
 
-# ---------------- 기록 ----------------
+
+# 학습 기록 화면
 elif st.session_state.page == "기록":
     hero("나의 학습 기록", "지금까지의 학습 진도와 시험 결과를 확인해요.")
     a, b, c = st.columns(3)
     a.metric("학습한 단어", f"{len(st.session_state.learned)}개")
-    b.metric("퀴즈 정답", f"{st.session_state.word_score + st.session_state.grammar_score}개")
+    b.metric(
+        "퀴즈 정답",
+        f"{st.session_state.word_score + st.session_state.grammar_score}개",
+    )
     c.metric("시험 응시", f"{len(st.session_state.exam_history)}회")
 
     st.markdown("### 복습 단어")
@@ -594,6 +620,7 @@ elif st.session_state.page == "기록":
     total = st.session_state.word_total + st.session_state.grammar_total
     correct = st.session_state.word_score + st.session_state.grammar_score
     st.markdown("### 퀴즈 정답률")
+
     if total:
         st.progress(correct / total)
         st.write(f"{correct} / {total}문제 정답 ({round(correct / total * 100)}%)")
