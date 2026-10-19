@@ -1,492 +1,510 @@
+
+import random
+from io import BytesIO
+
 import streamlit as st
-import html
-import urllib.parse
-import urllib.request
-import json
-<!DOCTYPE html>
-<html lang="ko">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="theme-color" content="#12251b">
-<title>듀오RINGGO | 한국어 학습</title>
+from deep_translator import GoogleTranslator
+from gtts import gTTS
+
+st.set_page_config(
+    page_title="듀오RING GO",
+    page_icon="🌏",
+    layout="wide",
+)
+
+st.markdown("""
 <style>
-:root{--dark:#12251b;--green:#c4f477;--bg:#f5f7f2;--white:#fff;--muted:#7b857c;--line:#e5e9e1}
-*{box-sizing:border-box}
-body{margin:0;background:var(--bg);color:#1b281f;font-family:Arial,"Noto Sans KR",sans-serif}
-button,input,select,textarea{font:inherit}
-button{cursor:pointer}
-button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible{outline:3px solid #82ae54;outline-offset:2px}
-.app{max-width:1200px;margin:auto;padding:20px}
-header{display:flex;justify-content:space-between;align-items:center;padding:8px 0 25px}
-.brand{font-size:23px;font-weight:900;letter-spacing:-1px}
-.brand span{color:#709f36}
-.logo{display:inline-grid;place-items:center;background:var(--dark);color:var(--green);width:42px;height:42px;border-radius:14px;margin-right:9px}
-.streak{background:white;border:1px solid var(--line);padding:11px 15px;border-radius:30px;font-size:13px}
-.layout{display:grid;grid-template-columns:205px minmax(0,1fr);gap:25px}
-aside{display:flex;flex-direction:column;gap:7px}
-.label{font-size:10px;color:var(--muted);letter-spacing:2px;font-weight:bold;padding:17px 12px 8px}
-.nav{border:0;background:transparent;text-align:left;padding:14px;border-radius:12px;color:#647067;font-weight:bold;font-size:14px}
-.nav.active{background:var(--dark);color:white}
-.nav.active .ico{color:var(--green)}
-.ico{display:inline-block;width:27px;font-size:18px}
-.goal{background:#e8f4d9;padding:18px;border-radius:17px;margin-top:25px;font-size:12px;line-height:1.7}
-.goal strong{font-size:14px}
-.progress{height:6px;background:#e1e7dc;border-radius:20px;overflow:hidden;margin:12px 0}
-.progress div{height:100%;width:0;background:#7ba848;transition:width .2s}
-main{min-width:0}
-.page{display:none}
-.page.active{display:block;animation:appear .2s}
-@keyframes appear{from{opacity:.5;transform:translateY(4px)}to{opacity:1;transform:none}}
-.hero{background:var(--dark);color:white;padding:34px;border-radius:25px;position:relative;overflow:hidden}
-.hero:after{content:"가";position:absolute;right:30px;top:-65px;font-size:230px;font-weight:bold;color:#ffffff0b}
-.eyebrow{font-size:11px;letter-spacing:2px;color:#b8eb7c;font-weight:bold}
-h1{font-size:clamp(29px,4vw,43px);letter-spacing:-1.5px;line-height:1.25;margin:16px 0}
-.hero p{font-size:13px;line-height:1.9;color:#d0d9d0}
-.primary,.secondary{border:0;border-radius:11px;padding:12px 17px;font-size:13px;font-weight:bold}
-.primary{background:var(--green);color:#1d321c}
-.secondary{background:white;border:1px solid var(--line);color:#28352b}
-.hero .primary{margin-top:9px}
-.section-head{display:flex;justify-content:space-between;align-items:center;margin:28px 0 14px}
-.section-head h2{font-size:18px;margin:0}
-.section-head p{font-size:12px;color:var(--muted);margin:6px 0 0}
-.stats,.cards{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
-.stat,.card,.panel{background:white;border:1px solid var(--line);border-radius:18px;padding:19px}
-.stat strong{display:block;font-size:26px;margin:13px 0 5px}
-.stat small{font-size:11px;color:var(--muted)}
-.card{transition:transform .15s}
-.card:hover{transform:translateY(-2px)}
-.card-icon{width:43px;height:43px;display:grid;place-items:center;background:#eef5e5;border-radius:13px;font-size:22px}
-.card h3{font-size:15px;margin:14px 0 8px}
-.card p{font-size:12px;color:var(--muted);line-height:1.8;min-height:45px}
-.card button{border:0;background:none;color:#5b8b32;font-size:12px;font-weight:bold;padding:0}
-.page-title{font-size:31px;letter-spacing:-1px;margin:12px 0}
-.subtitle{font-size:13px;line-height:1.9;color:var(--muted);margin-bottom:23px}
-.field-label{display:block;font-size:12px;font-weight:bold;margin:17px 0 8px}
-.field{width:100%;padding:13px;border:1px solid #dfe5dc;border-radius:11px;background:white;color:#1b281f}
-textarea.field{min-height:115px;resize:vertical;line-height:1.7}
-.row{display:flex;gap:9px;align-items:center;flex-wrap:wrap;margin-top:13px}
-.hint{font-size:11px;color:var(--muted);line-height:1.8;margin-top:12px}
-.result{background:#f0f6e9;padding:20px;border-radius:16px;margin-top:20px;overflow-wrap:anywhere}
-.result h3{font-size:11px;color:#648b40}
-.big-result{font-size:27px;font-weight:bold;line-height:1.6}
-.result-meta{font-size:12px;color:#6b7765;margin-top:9px}
-.tabs{display:flex;gap:7px;flex-wrap:wrap;margin:16px 0}
-.tab{background:white;border:1px solid var(--line);padding:9px 14px;border-radius:30px;font-size:12px;font-weight:bold}
-.tab.active{background:var(--dark);color:white}
-.hangul-grid{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:9px}
-.letter{border:1px solid var(--line);border-radius:13px;padding:12px 3px;text-align:center;background:white}
-.letter strong{font-size:28px;display:block}
-.letter small{font-size:10px;color:var(--muted);display:block;margin-top:5px}
-.letter button{border:0;background:none;color:#598833;font-size:11px;margin-top:7px}
-.grammar-item{background:white;border:1px solid var(--line);border-radius:15px;padding:18px;margin-top:11px}
-.grammar-item h3{font-size:16px;margin:13px 0 7px}
-.grammar-item p{font-size:13px;color:var(--muted);line-height:1.8}
-.example{background:#f4f6f0;padding:13px;border-radius:10px;font-size:13px;line-height:1.9;white-space:pre-line}
-.pill{background:#edf4e6;padding:6px 10px;border-radius:20px;font-size:11px}
-.quiz-top{display:flex;justify-content:space-between;color:var(--muted);font-size:12px}
-.question{font-size:20px;line-height:1.8;font-weight:bold;margin:23px 0}
-.choices{display:grid;gap:9px}
-.choice{padding:14px;text-align:left;border:1px solid var(--line);border-radius:12px;background:white;font-size:14px}
-.choice:hover:not(:disabled){border-color:#8eae70}
-.choice.correct{background:#eaf7e2;border-color:#77ac50}
-.choice.wrong{background:#fff0ec;border-color:#d88b78}
-.feedback{padding:14px;border-radius:12px;margin-top:14px;font-size:13px;line-height:1.8}
-.good{background:#eaf7e2;color:#315d25}
-.bad{background:#fff0ec;color:#854337}
-.note{background:#f0f3ed;border-radius:12px;padding:15px;font-size:12px;line-height:1.9;color:#687267;margin-top:16px}
-footer{text-align:center;color:#9aa39a;font-size:11px;padding:30px 0 10px}
-.mobile-nav{display:none}
-@media(max-width:800px){
- .app{padding:13px 14px 90px}.layout{display:block}aside{display:none}
- .mobile-nav{display:flex;position:fixed;z-index:10;bottom:0;left:0;right:0;background:white;border-top:1px solid var(--line);justify-content:space-around;padding:8px 2px max(8px,env(safe-area-inset-bottom))}
- .mobile-nav .nav{display:flex;flex-direction:column;align-items:center;padding:5px 8px;gap:3px;font-size:10px}
- .mobile-nav .ico{width:auto;font-size:18px}
- .cards{grid-template-columns:repeat(2,minmax(0,1fr))}
- .hero{padding:25px}.hero:after{right:0;font-size:170px}
+.stApp { background: #f5f7ff; }
+.block-container { max-width: 1100px; padding-top: 2rem; }
+.hero {
+    background: linear-gradient(120deg, #3457d5, #8054d8);
+    padding: 32px; border-radius: 24px; color: white;
+    margin-bottom: 24px;
 }
-@media(max-width:430px){
- .app{padding-left:10px;padding-right:10px}
- .brand{font-size:19px}.logo{width:36px;height:36px}
- .stats{gap:7px}.stat{padding:12px}.stat strong{font-size:21px}
- .stat small{font-size:10px}.cards{gap:8px}.card{padding:13px}
- .panel{padding:15px}.hangul-grid{grid-template-columns:repeat(4,minmax(0,1fr))}
- .hero h1{font-size:29px}
+.hero h1 { font-size: 38px; }
+.panel {
+    background: white; padding: 20px; border-radius: 16px;
+    border: 1px solid #e7eaf4; margin-bottom: 12px;
 }
 </style>
-</head>
-<body>
-<div class="app">
-<header>
- <div class="brand"><span class="logo">ㄱ</span>듀오<span>RINGGO</span></div>
- <div class="streak">🔥 <b id="streak">0</b>일 학습</div>
-</header>
+""", unsafe_allow_html=True)
 
-<div class="layout">
-<aside>
- <div class="label">LEARNING SPACE</div>
- <button class="nav active" data-page="home"><span class="ico">⌂</span>학습 홈</button>
- <button class="nav" data-page="translate"><span class="ico">文</span>번역 & 발음</button>
- <button class="nav" data-page="hangul"><span class="ico">가</span>한글 배우기</button>
- <button class="nav" data-page="grammar"><span class="ico">✎</span>한국어 문법</button>
- <button class="nav" data-page="quiz"><span class="ico">◎</span>TOPIK 연습</button>
- <div class="goal"><strong>🌱 오늘의 목표</strong><p>매일 조금씩 한국어와 가까워져요.</p><div class="progress"><div id="sideProgress"></div></div><span id="sideCount">0</span> / 5개 학습 활동</div>
-</aside>
+WORDS = [
+    ("안녕하세요", "Hello", "안녕하세요? 만나서 반가워요."),
+    ("감사합니다", "Thank you", "도와주셔서 감사합니다."),
+    ("죄송합니다", "I'm sorry", "늦어서 죄송합니다."),
+    ("괜찮아요", "It's okay", "걱정하지 마세요. 괜찮아요."),
+    ("얼마예요?", "How much is it?", "이것은 얼마예요?"),
+    ("화장실", "Restroom", "화장실이 어디에 있어요?"),
+    ("병원", "Hospital", "몸이 아파서 병원에 가요."),
+    ("도와주세요", "Please help me", "길을 잃었어요. 도와주세요."),
+    ("천천히 말씀해 주세요", "Please speak slowly", "천천히 말씀해 주세요."),
+    ("이해했어요", "I understood", "네, 이해했어요."),
+    ("잘 모르겠어요", "I don't understand", "죄송하지만 잘 모르겠어요."),
+    ("약국", "Pharmacy", "약국에서 약을 사요."),
+    ("버스 정류장", "Bus stop", "버스 정류장은 저쪽에 있어요."),
+    ("주민센터", "Community service center", "주민센터에 가요."),
+    ("약속", "Appointment / promise", "내일 약속이 있어요."),
+    ("주소", "Address", "주소를 적어 주세요."),
+    ("왼쪽", "Left", "왼쪽으로 가세요."),
+    ("오른쪽", "Right", "오른쪽으로 가세요."),
+    ("도움", "Help", "도움이 필요해요."),
+    ("한국어", "Korean language", "저는 한국어를 공부해요."),
+]
 
-<main>
-<section class="page active" id="page-home">
- <div class="hero">
-  <div class="eyebrow">YOUR KOREAN JOURNEY</div>
-  <h1>안녕! 한국어,<br>오늘도 한 걸음. ✳</h1>
-  <p>단어부터 문법, TOPIK까지.<br>나만의 속도로 한국어를 완성해 봐요.</p>
-  <button class="primary" onclick="go('translate')">학습 시작하기 ↗</button>
- </div>
- <div class="section-head"><div><h2>나의 학습 현황</h2><p>작은 성취가 실력이 돼요.</p></div></div>
- <div class="stats">
-  <div class="stat">📚<strong id="statWords">0</strong><small>번역한 단어</small></div>
-  <div class="stat">🎯<strong id="statQuiz">0%</strong><small>퀴즈 정답률</small></div>
-  <div class="stat">🌿<strong id="statLessons">0</strong><small>학습 활동</small></div>
- </div>
- <div class="section-head"><div><h2>무엇을 배워 볼까요?</h2><p>원하는 코스를 선택하세요.</p></div></div>
- <div class="cards">
-  <article class="card"><div class="card-icon">🌐</div><h3>번역 & 발음</h3><p>다른 언어의 단어를 한국어로 알아보고 발음을 들어요.</p><button onclick="go('translate')">학습 시작 →</button></article>
-  <article class="card"><div class="card-icon">🔤</div><h3>한글 마스터</h3><p>자음과 모음부터 읽고 쓰는 기초를 익혀요.</p><button onclick="go('hangul')">학습 시작 →</button></article>
-  <article class="card"><div class="card-icon">📝</div><h3>문법 한 스푼</h3><p>자주 쓰는 문법을 예문과 함께 배워요.</p><button onclick="go('grammar')">학습 시작 →</button></article>
-  <article class="card"><div class="card-icon">🏆</div><h3>TOPIK 챌린지</h3><p>한국어능력시험 유형의 문제를 풀어 봐요.</p><button onclick="go('quiz')">도전하기 →</button></article>
-  <article class="card"><div class="card-icon">💬</div><h3>오늘의 표현</h3><p>안녕하세요, 감사합니다. 일상 표현을 연습해요.</p><button onclick="speak('안녕하세요. 감사합니다. 만나서 반갑습니다.')">🔊 발음 듣기</button></article>
-  <article class="card"><div class="card-icon">✨</div><h3>꾸준한 학습</h3><p>오늘 배운 내용을 다시 확인하고 실력을 쌓아요.</p><button onclick="go('quiz')">복습하기 →</button></article>
- </div>
-</section>
+GRAMMAR = [
+    {
+        "title": "은/는 — 주제 표시",
+        "description": "문장에서 무엇에 대해 말하는지 나타내요. 받침이 없으면 는, 있으면 은을 사용해요.",
+        "examples": ["저는 학생이에요.", "한국어는 재미있어요."],
+        "question": "저___ 학생이에요.",
+        "options": ["은", "는", "을", "에"],
+        "answer": "는",
+        "explanation": "‘저’에는 받침이 없어서 ‘는’을 사용해요.",
+    },
+    {
+        "title": "이/가 — 주어 표시",
+        "description": "누가 또는 무엇이 행동하거나 어떤 상태인지 나타내요.",
+        "examples": ["친구가 와요.", "책이 있어요."],
+        "question": "친구___ 학교에 와요.",
+        "options": ["을", "가", "는", "에서"],
+        "answer": "가",
+        "explanation": "‘친구’에는 받침이 없으므로 ‘가’를 사용해요.",
+    },
+    {
+        "title": "을/를 — 목적어 표시",
+        "description": "동작의 대상을 나타내요. 받침이 있으면 을, 없으면 를을 사용해요.",
+        "examples": ["밥을 먹어요.", "물을 마셔요.", "한국어를 배워요."],
+        "question": "물___ 마셔요.",
+        "options": ["은", "가", "을", "에서"],
+        "answer": "을",
+        "explanation": "‘물’에는 받침 ㄹ이 있어서 ‘을’을 사용해요.",
+    },
+    {
+        "title": "에 — 시간·도착점",
+        "description": "시간이나 이동의 도착점을 나타내요.",
+        "examples": ["오전에 만나요.", "학교에 가요."],
+        "question": "학교___ 가요.",
+        "options": ["에서", "에", "을", "는"],
+        "answer": "에",
+        "explanation": "학교는 이동의 도착점이므로 ‘에’를 사용해요.",
+    },
+    {
+        "title": "에서 — 행동이 일어나는 장소",
+        "description": "행동이 일어나는 장소를 나타내요.",
+        "examples": ["도서관에서 공부해요.", "집에서 쉬어요."],
+        "question": "식당___ 밥을 먹어요.",
+        "options": ["에", "를", "에서", "은"],
+        "answer": "에서",
+        "explanation": "밥을 먹는 행동이 일어나는 장소이므로 ‘에서’를 사용해요.",
+    },
+    {
+        "title": "-고 싶어요 — 희망",
+        "description": "하고 싶은 일을 말할 때 사용해요.",
+        "examples": ["한국어를 배우고 싶어요.", "한국 음식을 먹고 싶어요."],
+        "question": "한국어를 배우___ 싶어요.",
+        "options": ["고", "은", "에", "에서"],
+        "answer": "고",
+        "explanation": "동사 어간 뒤에 ‘-고 싶어요’를 붙여요.",
+    },
+]
 
-<section class="page" id="page-translate">
- <div class="eyebrow" style="color:#719b43;margin-top:12px">LANGUAGE BRIDGE</div>
- <h1 class="page-title">번역 & 발음</h1>
- <p class="subtitle">모르는 단어나 문장을 입력해 보세요.<br>한국어 뜻을 알아보고 소리로 들어 보세요.</p>
- <div class="panel">
-  <label class="field-label" for="sourceLang">입력 언어</label>
-  <select class="field" id="sourceLang">
-   <option value="en">영어 · English</option>
-   <option value="ja">일본어 · 日本語</option>
-   <option value="zh-CN">중국어 · 中文</option>
-   <option value="es">스페인어 · Español</option>
-   <option value="fr">프랑스어 · Français</option>
-   <option value="de">독일어 · Deutsch</option>
-   <option value="vi">베트남어 · Tiếng Việt</option>
-   <option value="th">태국어 · ไทย</option>
-  </select>
-  <label class="field-label" for="sourceText">번역할 단어 또는 문장</label>
-  <textarea class="field" id="sourceText" placeholder="예: Hello, nice to meet you!"></textarea>
-  <div class="row">
-   <button class="primary" id="translateBtn" onclick="translateText()">한국어로 번역하기 ↗</button>
-   <button class="secondary" onclick="document.getElementById('sourceText').value='';document.getElementById('translationResult').hidden=true">초기화</button>
-  </div>
-  <p class="hint">인터넷 연결이 필요해요. 무료 번역 서비스의 사용량 제한에 따라 결과가 제공되지 않을 수 있어요.</p>
-  <div id="translationResult" class="result" hidden aria-live="polite">
-   <h3>KOREAN TRANSLATION 🇰🇷</h3>
-   <div class="big-result" id="translatedText"></div>
-   <div class="result-meta" id="translationMeta"></div>
-   <div class="row"><button class="primary" onclick="speak(document.getElementById('translatedText').textContent)">🔊 발음 듣기</button><button class="secondary" onclick="copyTranslation()">복사하기</button></div>
-  </div>
- </div>
- <div class="section-head"><div><h2>자주 쓰는 한국어</h2><p>버튼을 눌러 발음을 들어 보세요.</p></div></div>
- <div class="cards">
-  <article class="card"><div class="card-icon">👋</div><h3>안녕하세요</h3><p>Hello · 인사 표현</p><button onclick="speak('안녕하세요')">🔊 듣기</button></article>
-  <article class="card"><div class="card-icon">🙏</div><h3>감사합니다</h3><p>Thank you · 감사 표현</p><button onclick="speak('감사합니다')">🔊 듣기</button></article>
-  <article class="card"><div class="card-icon">💛</div><h3>사랑</h3><p>Love · 아끼는 마음</p><button onclick="speak('사랑')">🔊 듣기</button></article>
- </div>
-</section>
+TOPIK = [
+    {
+        "q": "‘도서관’은 무슨 뜻입니까?",
+        "options": ["Hospital", "Library", "Restaurant", "Airport"],
+        "answer": "Library",
+        "why": "도서관은 책을 읽거나 빌릴 수 있는 곳이에요.",
+    },
+    {
+        "q": "저는 매일 한국어를 ___.",
+        "options": ["공부해요", "공부예요", "공부에서", "공부하고"],
+        "answer": "공부해요",
+        "why": "‘공부하다’의 현재형은 ‘공부해요’예요.",
+    },
+    {
+        "q": "감사의 표현은 무엇입니까?",
+        "options": ["안녕히 가세요", "감사합니다", "죄송합니다", "괜찮아요"],
+        "answer": "감사합니다",
+        "why": "‘감사합니다’는 고마움을 표현하는 말이에요.",
+    },
+    {
+        "q": "약국에서 주로 무엇을 합니까?",
+        "options": ["책을 빌립니다", "약을 삽니다", "버스를 탑니다", "운동을 합니다"],
+        "answer": "약을 삽니다",
+        "why": "약국에서는 약을 살 수 있어요.",
+    },
+    {
+        "q": "학교___ 한국어를 배워요.",
+        "options": ["에서", "을", "는", "와"],
+        "answer": "에서",
+        "why": "배우는 행동이 일어나는 장소이므로 ‘에서’를 사용해요.",
+    },
+    {
+        "q": "‘천천히 말씀해 주세요’의 뜻은 무엇입니까?",
+        "options": [
+            "Please wait here",
+            "Please speak slowly",
+            "Please write it",
+            "Please come tomorrow",
+        ],
+        "answer": "Please speak slowly",
+        "why": "상대방에게 천천히 말해 달라고 부탁하는 표현이에요.",
+    },
+    {
+        "q": "A: 감사합니다. B: ___.",
+        "options": ["천만에요", "어디예요?", "얼마예요?", "잘 먹겠습니다"],
+        "answer": "천만에요",
+        "why": "‘천만에요’는 감사 인사에 답할 때 쓸 수 있어요.",
+    },
+    {
+        "q": "병원에 가는 이유로 알맞은 것은 무엇입니까?",
+        "options": ["책을 빌리려고", "몸이 아파서", "버스를 타려고", "옷을 사려고"],
+        "answer": "몸이 아파서",
+        "why": "병원은 진료를 받기 위해 가는 곳이에요.",
+    },
+    {
+        "q": "저는 물___ 마셔요.",
+        "options": ["을", "에", "에서", "은"],
+        "answer": "을",
+        "why": "‘물’은 ‘마시다’의 목적어이므로 ‘을’을 사용해요.",
+    },
+    {
+        "q": "‘오른쪽’의 반대말은 무엇입니까?",
+        "options": ["위쪽", "왼쪽", "앞쪽", "안쪽"],
+        "answer": "왼쪽",
+        "why": "‘오른쪽’의 반대 방향은 ‘왼쪽’이에요.",
+    },
+]
 
-<section class="page" id="page-hangul">
- <div class="eyebrow" style="color:#719b43;margin-top:12px">HANGUL STUDIO</div>
- <h1 class="page-title">한글 배우기</h1>
- <p class="subtitle">자음과 모음을 결합해 음절을 만들어요.<br>글자를 선택하면 발음을 들을 수 있어요.</p>
- <div class="panel">
-  <h2 style="font-size:17px">기본 자음</h2><div class="hangul-grid" id="consonants"></div>
-  <h2 style="font-size:17px;margin-top:27px">기본 모음</h2><div class="hangul-grid" id="vowels"></div>
-  <h2 style="font-size:17px;margin-top:27px">음절 만들기</h2>
-  <p class="subtitle">자음과 모음을 선택해 보세요.</p>
-  <div class="row">
-   <select class="field" style="flex:1" id="makeConsonant"></select>
-   <select class="field" style="flex:1" id="makeVowel"></select>
-   <button class="primary" onclick="makeSyllable()">만들기</button>
-  </div>
-  <div id="syllableResult" class="result" hidden>
-   <div class="big-result" id="syllableLetter" style="font-size:45px"></div>
-   <div id="syllableInfo" class="result-meta"></div>
-   <button class="secondary" style="margin-top:12px" onclick="speak(document.getElementById('syllableLetter').textContent)">🔊 발음 듣기</button>
-  </div>
-  <div class="note">학습 팁: ㄱ + ㅏ = 가. 자음과 모음의 조합을 익히고 소리 내어 읽어 보세요.</div>
- </div>
-</section>
-
-<section class="page" id="page-grammar">
- <div class="eyebrow" style="color:#719b43;margin-top:12px">GRAMMAR LAB</div>
- <h1 class="page-title">한국어 문법</h1>
- <p class="subtitle">문법 규칙을 이해하고 예문으로 익혀요.</p>
- <div class="tabs" id="grammarTabs">
-  <button class="tab active" data-level="전체">전체</button>
-  <button class="tab" data-level="입문">입문</button>
-  <button class="tab" data-level="초급">초급</button>
- </div>
- <div id="grammarList"></div>
-</section>
-
-<section class="page" id="page-quiz">
- <div class="eyebrow" style="color:#719b43;margin-top:12px">TOPIK PRACTICE</div>
- <h1 class="page-title">TOPIK 챌린지</h1>
- <p class="subtitle">어휘와 문법, 읽기 문제를 풀고 해설을 확인하세요.</p>
- <div class="panel" id="quizPanel">
-  <div class="quiz-top"><span id="quizCategory">초급 · 어휘</span><span id="quizCount">1 / 10</span></div>
-  <div class="progress"><div id="quizProgress"></div></div>
-  <div class="question" id="quizQuestion"></div>
-  <div class="choices" id="quizChoices"></div>
-  <div id="quizFeedback" aria-live="polite"></div>
-  <div class="row" style="justify-content:space-between">
-   <span id="quizScore" class="hint">이번 도전 0점</span>
-   <button class="primary" id="quizNext" onclick="nextQuestion()" disabled>다음 문제 →</button>
-  </div>
- </div>
- <div class="note">이 문제는 학습용으로 자체 제작한 TOPIK 유형 연습 문항이며, 공식 기출문제가 아닙니다.</div>
-</section>
-<footer>DUO RINGGO · Learn Korean, connect the world.</footer>
-</main>
-</div>
-
-<nav class="mobile-nav">
- <button class="nav active" data-page="home"><span class="ico">⌂</span>홈</button>
- <button class="nav" data-page="translate"><span class="ico">文</span>번역</button>
- <button class="nav" data-page="hangul"><span class="ico">가</span>한글</button>
- <button class="nav" data-page="grammar"><span class="ico">✎</span>문법</button>
- <button class="nav" data-page="quiz"><span class="ico">◎</span>TOPIK</button>
-</nav>
-</div>
-
-<script>
-const $=id=>document.getElementById(id);
-const STORAGE='duoringgo-data-v2';
-const defaults={words:0,correct:0,answered:0,lessons:[],streak:0,lastDay:''};
-let stats={...defaults};
-try{stats={...defaults,...JSON.parse(localStorage.getItem(STORAGE)||'{}')}}catch(e){}
-
-function save(){
- try{localStorage.setItem(STORAGE,JSON.stringify(stats))}catch(e){}
- updateStats();
-}
-function markLesson(name){
- if(!stats.lessons.includes(name))stats.lessons.push(name);
- const today=new Date().toLocaleDateString('en-CA');
- if(stats.lastDay!==today){
-  const yesterday=new Date(Date.now()-86400000).toLocaleDateString('en-CA');
-  stats.streak=stats.lastDay===yesterday?stats.streak+1:1;
-  stats.lastDay=today;
- }
- save();
-}
-function updateStats(){
- $('statWords').textContent=stats.words;
- $('statQuiz').textContent=stats.answered?Math.round(stats.correct/stats.answered*100)+'%':'0%';
- $('statLessons').textContent=stats.lessons.length;
- $('streak').textContent=stats.streak;
- $('sideCount').textContent=Math.min(stats.lessons.length,5);
- $('sideProgress').style.width=Math.min(stats.lessons.length/5*100,100)+'%';
-}
-function go(page){
- document.querySelectorAll('.page').forEach(p=>p.classList.toggle('active',p.id==='page-'+page));
- document.querySelectorAll('.nav[data-page]').forEach(b=>b.classList.toggle('active',b.dataset.page===page));
- window.scrollTo({top:0,behavior:'smooth'});
- if(page==='hangul')markLesson('hangul');
- if(page==='grammar')markLesson('grammar');
- if(page==='quiz')renderQuiz();
-}
-document.querySelectorAll('.nav[data-page]').forEach(b=>b.addEventListener('click',()=>go(b.dataset.page)));
-
-function speak(text){
- if(!('speechSynthesis' in window)){alert('이 브라우저는 음성 재생을 지원하지 않아요.');return}
- speechSynthesis.cancel();
- const utterance=new SpeechSynthesisUtterance(text);
- utterance.lang='ko-KR';utterance.rate=.85;
- const voice=speechSynthesis.getVoices().find(v=>v.lang.toLowerCase().startsWith('ko'));
- if(voice)utterance.voice=voice;
- speechSynthesis.speak(utterance);
+LANGUAGES = {
+    "영어": "en",
+    "일본어": "ja",
+    "중국어(간체)": "zh-CN",
+    "베트남어": "vi",
+    "태국어": "th",
+    "인도네시아어": "id",
+    "프랑스어": "fr",
+    "스페인어": "es",
+    "러시아어": "ru",
+    "아랍어": "ar",
+    "우즈베크어": "uz",
+    "몽골어": "mn",
+    "네팔어": "ne",
+    "필리핀어": "tl",
+    "독일어": "de",
 }
 
-async function translateText(){
- const input=$('sourceText').value.trim();
- if(!input){alert('번역할 단어나 문장을 입력해 주세요.');return}
- const btn=$('translateBtn');
- btn.disabled=true;btn.textContent='번역 중…';
- $('translationResult').hidden=true;
- try{
-  const lang=$('sourceLang').value;
-  const url='https://api.mymemory.translated.net/get?q='+encodeURIComponent(input)+'&langpair='+encodeURIComponent(lang+'|ko');
-  const response=await fetch(url);
-  if(!response.ok)throw Error('Translation request failed');
-  const data=await response.json();
-  const translated=data.responseData&&data.responseData.translatedText;
-  if(data.responseStatus!==200||!translated||/MYMEMORY WARNING|PLEASE SELECT/i.test(translated))throw Error('No translation');
-  $('translatedText').textContent=translated;
-  $('translationMeta').textContent='입력: '+input;
-  $('translationResult').hidden=false;
-  stats.words++;
-  markLesson('translate');
- }catch(e){
-  alert('번역에 실패했어요. 인터넷 연결을 확인하고 다시 시도해 주세요. 무료 번역 서비스의 사용량 제한일 수도 있어요.');
- }finally{
-  btn.disabled=false;btn.textContent='한국어로 번역하기 ↗';
- }
-}
-function copyTranslation(){
- const text=$('translatedText').textContent;
- if(navigator.clipboard&&window.isSecureContext){
-  navigator.clipboard.writeText(text).then(()=>alert('복사했어요.')).catch(()=>prompt('아래 내용을 복사하세요.',text));
- }else prompt('아래 내용을 복사하세요.',text);
-}
+if "learned" not in st.session_state:
+    st.session_state.learned = []
+if "saved" not in st.session_state:
+    st.session_state.saved = []
+if "word_score" not in st.session_state:
+    st.session_state.word_score = 0
+if "word_total" not in st.session_state:
+    st.session_state.word_total = 0
+if "grammar_score" not in st.session_state:
+    st.session_state.grammar_score = 0
+if "grammar_total" not in st.session_state:
+    st.session_state.grammar_total = 0
+if "exam_history" not in st.session_state:
+    st.session_state.exam_history = []
+if "translated" not in st.session_state:
+    st.session_state.translated = ""
+if "word_q" not in st.session_state:
+    st.session_state.word_q = None
+if "word_done" not in st.session_state:
+    st.session_state.word_done = False
+if "grammar_q" not in st.session_state:
+    st.session_state.grammar_q = None
+if "grammar_done" not in st.session_state:
+    st.session_state.grammar_done = False
+if "exam_questions" not in st.session_state:
+    st.session_state.exam_questions = []
+if "exam_submitted" not in st.session_state:
+    st.session_state.exam_submitted = False
 
-const cons=[
- ['ㄱ','g / k'],['ㄴ','n'],['ㄷ','d / t'],['ㄹ','r / l'],['ㅁ','m'],
- ['ㅂ','b / p'],['ㅅ','s'],['ㅇ','무음 / ng'],['ㅈ','j'],['ㅊ','ch'],
- ['ㅋ','k'],['ㅌ','t'],['ㅍ','p'],['ㅎ','h'],['ㄲ','kk'],
- ['ㄸ','tt'],['ㅃ','pp'],['ㅆ','ss'],['ㅉ','jj']
-];
-const vows=[
- ['ㅏ','a'],['ㅐ','ae'],['ㅑ','ya'],['ㅒ','yae'],['ㅓ','eo'],
- ['ㅔ','e'],['ㅕ','yeo'],['ㅖ','ye'],['ㅗ','o'],['ㅘ','wa'],
- ['ㅙ','wae'],['ㅚ','oe'],['ㅛ','yo'],['ㅜ','u'],['ㅝ','wo'],
- ['ㅞ','we'],['ㅟ','wi'],['ㅠ','yu'],['ㅡ','eu'],['ㅢ','ui'],['ㅣ','i']
-];
-function renderLetters(id,data){
- const grid=$(id);
- data.forEach(([letter,sound])=>{
-  const item=document.createElement('div');item.className='letter';
-  const strong=document.createElement('strong');strong.textContent=letter;
-  const small=document.createElement('small');small.textContent=sound;
-  const button=document.createElement('button');button.textContent='🔊 듣기';
-  button.addEventListener('click',()=>speak(letter));
-  item.append(strong,small,button);grid.append(item);
- });
-}
-renderLetters('consonants',cons);renderLetters('vowels',vows);
-$('makeConsonant').innerHTML=cons.slice(0,14).map(x=>'<option value="'+x[0]+'">'+x[0]+'</option>').join('');
-$('makeVowel').innerHTML=vows.map(x=>'<option value="'+x[0]+'">'+x[0]+'</option>').join('');
+def hero(title, subtitle):
+    st.markdown(
+        f'<div class="hero"><h1>{title}</h1><p>{subtitle}</p></div>',
+        unsafe_allow_html=True,
+    )
 
-function makeSyllable(){
- const c=$('makeConsonant').value,v=$('makeVowel').value;
- const leads=['ㄱ','ㄲ','ㄴ','ㄷ','ㄸ','ㄹ','ㅁ','ㅂ','ㅃ','ㅅ','ㅆ','ㅇ','ㅈ','ㅉ','ㅊ','ㅋ','ㅌ','ㅍ','ㅎ'];
- const medias=['ㅏ','ㅐ','ㅑ','ㅒ','ㅓ','ㅔ','ㅕ','ㅖ','ㅗ','ㅘ','ㅙ','ㅚ','ㅛ','ㅜ','ㅝ','ㅞ','ㅟ','ㅠ','ㅡ','ㅢ','ㅣ'];
- const li=leads.indexOf(c),mi=medias.indexOf(v);
- if(li<0||mi<0){alert('지원하지 않는 조합이에요.');return}
- const syllable=String.fromCharCode(44032+li*588+mi*28);
- $('syllableLetter').textContent=syllable;
- $('syllableInfo').textContent=c+' + '+v+' = '+syllable+' · 발음을 듣고 따라 해 보세요.';
- $('syllableResult').hidden=false;
- markLesson('hangul');
-}
+def audio_for(text, lang="ko"):
+    try:
+        output = BytesIO()
+        gTTS(text=text, lang=lang).write_to_fp(output)
+        output.seek(0)
+        return output
+    except Exception:
+        return None
 
-const grammar=[
- {level:'입문',title:'은 / 는 — 주제 나타내기',desc:'문장에서 무엇에 대해 이야기하는지 나타내요. 받침이 있으면 은, 없으면 는을 사용해요.',ex:'저는 학생이에요. (I am a student.)\n오늘은 날씨가 좋아요. (The weather is nice today.)',sound:'저는 학생이에요.'},
- {level:'입문',title:'이 / 가 — 주어 나타내기',desc:'문장의 주어를 표시하는 조사예요. 받침이 있으면 이, 없으면 가를 사용해요.',ex:'책이 있어요. (There is a book.)\n친구가 와요. (My friend is coming.)',sound:'친구가 와요.'},
- {level:'입문',title:'이에요 / 예요 — 정중한 표현',desc:'명사 뒤에 붙여 정중하게 설명해요. 받침이 있으면 이에요, 없으면 예요를 써요.',ex:'저는 의사예요. (I am a doctor.)\n여기는 학교예요. (This is a school.)',sound:'저는 의사예요.'},
- {level:'초급',title:'을 / 를 — 목적어 나타내기',desc:'동작의 대상을 나타내요. 받침이 있으면 을, 없으면 를을 사용해요.',ex:'책을 읽어요. (I read a book.)\n커피를 마셔요. (I drink coffee.)',sound:'책을 읽어요.'},
- {level:'초급',title:'-아요 / -어요 — 현재형',desc:'동사와 형용사를 일상적인 정중한 말투로 활용해요.',ex:'가다 → 가요. (go)\n먹다 → 먹어요. (eat)',sound:'먹어요.'},
- {level:'초급',title:'-고 싶어요 — 희망 표현',desc:'하고 싶은 행동을 표현할 때 동사 어간 뒤에 붙여요.',ex:'한국어를 배우고 싶어요. (I want to learn Korean.)\n한국에 가고 싶어요. (I want to go to Korea.)',sound:'한국어를 배우고 싶어요.'},
- {level:'초급',title:'-았어요 / -었어요 — 과거형',desc:'과거에 일어난 일을 표현해요.',ex:'어제 영화를 봤어요. (I watched a movie yesterday.)\n밥을 먹었어요. (I ate.)',sound:'어제 영화를 봤어요.'},
- {level:'초급',title:'-(으)세요 — 정중한 요청',desc:'정중하게 부탁하거나 권유할 때 사용해요.',ex:'여기 앉으세요. (Please sit here.)\n천천히 말하세요. (Please speak slowly.)',sound:'여기 앉으세요.'}
-];
-function renderGrammar(level='전체'){
- const list=$('grammarList');list.replaceChildren();
- grammar.filter(g=>level==='전체'||g.level===level).forEach(g=>{
-  const article=document.createElement('article');article.className='grammar-item';
-  const pill=document.createElement('span');pill.className='pill';pill.textContent=g.level;
-  const play=document.createElement('button');play.className='secondary';play.textContent='🔊 예문 듣기';play.style.float='right';
-  play.addEventListener('click',()=>speak(g.sound));
-  const title=document.createElement('h3');title.textContent=g.title;
-  const desc=document.createElement('p');desc.textContent=g.desc;
-  const example=document.createElement('div');example.className='example';example.textContent=g.ex;
-  article.append(pill,play,title,desc,example);list.append(article);
- });
-}
-document.querySelectorAll('#grammarTabs button').forEach(b=>b.addEventListener('click',()=>{
- document.querySelectorAll('#grammarTabs button').forEach(t=>t.classList.remove('active'));
- b.classList.add('active');renderGrammar(b.dataset.level);
-}));
-renderGrammar();
+with st.sidebar:
+    st.markdown("## 🌏 듀오RING GO")
+    st.caption("언어를 잇고, 문화를 이해하다")
+    page = st.radio(
+        "메뉴",
+        [
+            "🏠 대시보드",
+            "🔤 한글 학습",
+            "🌐 번역 & 발음",
+            "📚 단어 학습",
+            "🧩 문법 학습",
+            "📝 모의시험",
+            "📈 학습 기록",
+        ],
+    )
+    st.divider()
+    st.caption("작은 한마디가 큰 이해를 만들어요.")
 
-const questions=[
- {cat:'어휘',q:'빈칸에 들어갈 가장 알맞은 말을 고르세요.\n저는 아침에 밥을 ___.',choices:['마셔요','먹어요','읽어요','만나요'],a:1,why:'밥은 보통 먹는다고 표현해요. "밥을 먹어요"는 eat a meal이라는 뜻이에요.'},
- {cat:'문법',q:'빈칸에 알맞은 조사를 고르세요.\n저___ 학생이에요.',choices:['를','에서','는','으로'],a:2,why:'문장의 주제를 나타낼 때 "저는"이라고 해요.'},
- {cat:'어휘',q:'"감사합니다"와 뜻이 가장 가까운 것은?',choices:['안녕히 가세요','죄송합니다','고맙습니다','괜찮습니다'],a:2,why:'감사합니다와 고맙습니다는 모두 감사의 뜻이에요.'},
- {cat:'문법',q:'빈칸에 알맞은 말을 고르세요.\n어제 영화를 ___.',choices:['봐요','봤어요','볼까요','보세요'],a:1,why:'어제는 과거를 나타내므로 "봤어요"가 알맞아요.'},
- {cat:'어휘',q:'"학교"는 무엇을 의미하나요?',choices:['Hospital','School','Library','Restaurant'],a:1,why:'학교는 공부하는 곳인 school을 뜻해요.'},
- {cat:'문법',q:'자연스러운 문장을 고르세요.',choices:['저는 사과를 먹어요.','저는 사과가 먹어요.','저는 사과에 먹어요.','저는 사과로 먹어요.'],a:0,why:'먹는 대상을 나타낼 때 목적격 조사 "를"을 사용해요.'},
- {cat:'어휘',q:'"도서관"에서 할 수 있는 일은?',choices:['책을 읽어요','수영을 해요','요리를 해요','축구를 해요'],a:0,why:'도서관은 책을 읽거나 빌릴 수 있는 곳이에요.'},
- {cat:'문법',q:'빈칸에 알맞은 표현을 고르세요.\n한국 음식을 먹___ 싶어요.',choices:['는','고','을','에'],a:1,why:'동사 어간 뒤에 "-고 싶어요"를 붙여 희망을 표현해요.'},
- {cat:'읽기',q:'글을 읽고 답하세요.\n민수 씨는 일요일에 공원에 갑니다. 친구와 축구를 합니다.\n민수 씨는 누구와 축구를 합니까?',choices:['선생님','가족','친구','혼자'],a:2,why:'글에서 민수 씨는 친구와 축구를 한다고 했어요.'},
- {cat:'읽기',q:'글을 읽고 답하세요.\n수진 씨는 아침 7시에 일어납니다. 8시에 아침을 먹습니다.\n수진 씨는 몇 시에 일어납니까?',choices:['6시','7시','8시','9시'],a:1,why:'첫 문장에서 아침 7시에 일어난다고 했어요.'}
-];
-let order=questions.map((_,i)=>i),qi=0,answeredCurrent=false,sessionCorrect=0;
-function renderQuiz(){
- if(qi>=order.length){showQuizEnd();return}
- const q=questions[order[qi]];answeredCurrent=false;
- $('quizCategory').textContent='학습 · '+q.cat;
- $('quizCount').textContent=(qi+1)+' / '+order.length;
- $('quizProgress').style.width=((qi+1)/order.length*100)+'%';
- $('quizQuestion').textContent=q.q;
- $('quizChoices').replaceChildren();
- q.choices.forEach((choice,i)=>{
-  const btn=document.createElement('button');btn.className='choice';
-  btn.textContent=['①','②','③','④'][i]+'　'+choice;
-  btn.addEventListener('click',()=>selectAnswer(i));
-  $('quizChoices').append(btn);
- });
- $('quizFeedback').replaceChildren();
- $('quizNext').disabled=true;
- $('quizNext').textContent=qi===order.length-1?'결과 보기 →':'다음 문제 →';
- $('quizScore').textContent='이번 도전 '+sessionCorrect+'점';
-}
-function selectAnswer(i){
- if(answeredCurrent)return;
- answeredCurrent=true;
- const q=questions[order[qi]],correct=i===q.a;
- if(correct)sessionCorrect++;
- stats.answered++;if(correct)stats.correct++;
- markLesson('quiz');
- [...$('quizChoices').children].forEach((btn,j)=>{
-  btn.disabled=true;
-  if(j===q.a)btn.classList.add('correct');
-  if(j===i&&!correct)btn.classList.add('wrong');
- });
- const feedback=document.createElement('div');
- feedback.className='feedback '+(correct?'good':'bad');
- const strong=document.createElement('strong');
- strong.textContent=correct?'정답이에요! 🎉':'아쉬워요. 다시 배워 봐요.';
- feedback.append(strong,document.createElement('br'),document.createTextNode(q.why));
- $('quizFeedback').replaceChildren(feedback);
- $('quizScore').textContent='이번 도전 '+sessionCorrect+'점';
- $('quizNext').disabled=false;
-}
-function nextQuestion(){
- if(!answeredCurrent)return;
- qi++;renderQuiz();
-}
-function showQuizEnd(){
- $('quizPanel').replaceChildren();
- const wrap=document.createElement('div');wrap.style.textAlign='center';wrap.style.padding='25px 5px';
- const icon=document.createElement('div');icon.style.fontSize='45px';icon.textContent='🏆';
- const title=document.createElement('h2');title.textContent='도전 완료!';
- const score=document.createElement('div');score.className='big-result';score.textContent=sessionCorrect+' / '+questions.length+'점';
- const percent=document.createElement('p');percent.textContent='정답률 '+Math.round(sessionCorrect/questions.length*100)+'%';
- const again=document.createElement('button');again.className='primary';again.textContent='다시 도전하기 ↻';again.addEventListener('click',restartQuiz);
- const home=document.createElement('button');home.className='secondary';home.style.marginLeft='8px';home.textContent='홈으로';home.addEventListener('click',()=>go('home'));
- wrap.append(icon,title,score,percent,again,home);$('quizPanel').append(wrap);
-}
-function restartQuiz(){
- order=questions.map((_,i)=>i).sort(()=>Math.random()-.5);
- qi=0;sessionCorrect=0;
- $('quizPanel').innerHTML='<div class="quiz-top"><span id="quizCategory"></span><span id="quizCount"></span></div><div class="progress"><div id="quizProgress"></div></div><div class="question" id="quizQuestion"></div><div class="choices" id="quizChoices"></div><div id="quizFeedback" aria-live="polite"></div><div class="row" style="justify-content:space-between"><span id="quizScore" class="hint"></span><button class="primary" id="quizNext" disabled>다음 문제 →</button></div>';
- $('quizNext').addEventListener('click',nextQuestion);
- renderQuiz();
-}
-updateStats();
-</script>
-</body>
-</html>
+if page == "🏠 대시보드":
+    hero("안녕하세요! 듀오RING GO 🌏", "한국어를 배우고 일상에서 자신 있게 소통해요.")
+    st.markdown("### 오늘의 학습")
+    a, b, c = st.columns(3)
+    a.metric("학습한 단어", f"{len(st.session_state.learned)}개")
+    b.metric("누적 퀴즈 정답", f"{st.session_state.word_score + st.session_state.grammar_score}개")
+    c.metric("모의시험 응시", f"{len(st.session_state.exam_history)}회")
+
+    st.markdown('<div class="panel"><h2>오늘의 표현</h2><h3>천천히 말씀해 주세요.</h3><p>Please speak slowly.</p><p>상대방의 말을 이해하기 어려울 때 정중하게 부탁할 수 있어요.</p></div>', unsafe_allow_html=True)
+    if st.button("오늘의 표현 발음 듣기"):
+        audio = audio_for("천천히 말씀해 주세요.")
+        if audio:
+            st.audio(audio, format="audio/mp3")
+        else:
+            st.warning("음성 생성에 실패했어요. 인터넷 연결을 확인해 주세요.")
+
+    st.info("학습 팁: 하루에 단어 5개와 문법 1개씩 공부해 보세요.")
+
+elif page == "🔤 한글 학습":
+    hero("한글 학습실 🔤", "자음과 모음을 익히고 글자를 읽는 연습을 해요.")
+    tab1, tab2, tab3 = st.tabs(["자음", "모음", "글자 조합"])
+    consonants = [
+        ("ㄱ", "기역", "가방"), ("ㄴ", "니은", "나무"),
+        ("ㄷ", "디귿", "다리"), ("ㄹ", "리을", "라디오"),
+        ("ㅁ", "미음", "모자"), ("ㅂ", "비읍", "바나나"),
+        ("ㅅ", "시옷", "사과"), ("ㅇ", "이응", "아이"),
+        ("ㅈ", "지읒", "자동차"), ("ㅊ", "치읓", "친구"),
+        ("ㅋ", "키읔", "커피"), ("ㅌ", "티읕", "토마토"),
+        ("ㅍ", "피읖", "포도"), ("ㅎ", "히읗", "하늘"),
+    ]
+    vowels = [
+        ("ㅏ", "아", "a"), ("ㅑ", "야", "ya"),
+        ("ㅓ", "어", "eo"), ("ㅕ", "여", "yeo"),
+        ("ㅗ", "오", "o"), ("ㅛ", "요", "yo"),
+        ("ㅜ", "우", "u"), ("ㅠ", "유", "yu"),
+        ("ㅡ", "으", "eu"), ("ㅣ", "이", "i"),
+        ("ㅐ", "애", "ae"), ("ㅔ", "에", "e"),
+    ]
+    with tab1:
+        cols = st.columns(4)
+        for i, (letter, name, example) in enumerate(consonants):
+            with cols[i % 4]:
+                st.markdown(
+                    f'<div class="panel"><h1 style="text-align:center">{letter}</h1><p style="text-align:center">{name}</p><p style="text-align:center">{example}</p></div>',
+                    unsafe_allow_html=True,
+                )
+    with tab2:
+        cols = st.columns(4)
+        for i, (letter, example, sound) in enumerate(vowels):
+            with cols[i % 4]:
+                st.markdown(
+                    f'<div class="panel"><h1 style="text-align:center">{letter}</h1><p style="text-align:center">{example}</p><p style="text-align:center">로마자: {sound}</p></div>',
+                    unsafe_allow_html=True,
+                )
+    with tab3:
+        st.markdown("""
+        <div class="panel">
+        <h2>ㄱ + ㅏ = 가</h2>
+        <h2>ㄴ + ㅏ = 나</h2>
+        <h2>ㅎ + ㅏ + ㄴ = 한</h2>
+        <h2>한 + 국 + 어 = 한국어</h2>
+        </div>
+        """, unsafe_allow_html=True)
+        st.caption("로마자 표기는 발음을 이해하기 위한 참고예요.")
+
+elif page == "🌐 번역 & 발음":
+    hero("번역 & 발음 🌐", "다른 언어의 단어나 문장을 한국어로 바꾸고 발음을 들어 보세요.")
+    language = st.selectbox("입력 언어", list(LANGUAGES.keys()))
+    source = st.text_area("번역할 문장", placeholder="예: I need help.")
+    if st.button("한국어로 번역하기", type="primary"):
+        if not source.strip():
+            st.warning("번역할 문장을 입력해 주세요.")
+        else:
+            try:
+                st.session_state.translated = GoogleTranslator(
+                    source=LANGUAGES[language], target="ko"
+                ).translate(source.strip())
+            except Exception:
+                st.error("번역에 실패했어요. 인터넷 연결을 확인해 주세요.")
+    if st.session_state.translated:
+        st.markdown("### 번역 결과")
+        st.markdown(
+            f'<div class="panel"><h2>{st.session_state.translated}</h2></div>',
+            unsafe_allow_html=True,
+        )
+        if st.button("한국어 발음 듣기"):
+            audio = audio_for(st.session_state.translated)
+            if audio:
+                st.audio(audio, format="audio/mp3")
+            else:
+                st.warning("음성 생성에 실패했어요. 인터넷 연결을 확인해 주세요.")
+        st.caption("자동 번역은 문맥에 따라 다를 수 있어요. 중요한 내용은 확인해 주세요.")
+
+elif page == "📚 단어 학습":
+    hero("단어 학습실 📚", "일상에서 자주 쓰는 한국어 표현을 익혀요.")
+    categories = sorted(set(v[0] for v in WORDS))
+    search = st.text_input("단어 검색", placeholder="한국어 또는 영어")
+    for ko, en, example in WORDS:
+        if search and search.lower() not in ko.lower() and search.lower() not in en.lower():
+            continue
+        with st.expander(f"{ko} — {en}"):
+            st.write(f"예문: {example}")
+            col1, col2, col3 = st.columns(3)
+            with col1:
+                if st.button("학습 완료", key=f"learn_{ko}"):
+                    if ko not in st.session_state.learned:
+                        st.session_state.learned.append(ko)
+                    st.success("학습 기록에 추가했어요.")
+            with col2:
+                if st.button("복습 저장", key=f"save_{ko}"):
+                    if ko not in st.session_state.saved:
+                        st.session_state.saved.append(ko)
+                    st.success("복습 목록에 저장했어요.")
+            with col3:
+                if st.button("발음 듣기", key=f"sound_{ko}"):
+                    audio = audio_for(ko)
+                    if audio:
+                        st.audio(audio, format="audio/mp3")
+                    else:
+                        st.warning("음성을 만들지 못했어요.")
+
+    st.divider()
+    st.markdown("### 단어 퀴즈")
+    if st.button("새 단어 문제"):
+        correct = random.choice(WORDS)
+        wrong = random.sample([v for v in WORDS if v != correct], 3)
+        options = [v[0] for v in wrong] + [correct[0]]
+        random.shuffle(options)
+        st.session_state.word_q = {"correct": correct, "options": options}
+        st.session_state.word_done = False
+
+    q = st.session_state.word_q
+    if q:
+        st.write(f"‘{q['correct'][1]}’의 한국어 표현은 무엇일까요?")
+        choice = st.radio("정답 선택", q["options"], key="word_choice")
+        if st.button("정답 확인", disabled=st.session_state.word_done):
+            st.session_state.word_done = True
+            st.session_state.word_total += 1
+            if choice == q["correct"][0]:
+                st.session_state.word_score += 1
+                st.success("정답이에요! 🎉")
+            else:
+                st.error(f"정답은 {q['correct'][0]}예요.")
+            st.info(q["correct"][2])
+
+elif page == "🧩 문법 학습":
+    hero("문법 학습실 🧩", "설명과 예문으로 자연스러운 문장을 만들어 봐요.")
+    for item in GRAMMAR:
+        with st.expander(item["title"]):
+            st.write(item["description"])
+            st.markdown("**예문**")
+            for example in item["examples"]:
+                st.write("• " + example)
+
+    st.divider()
+    st.markdown("### 문법 퀴즈")
+    if st.button("새 문법 문제"):
+        st.session_state.grammar_q = random.choice(GRAMMAR)
+        st.session_state.grammar_done = False
+    q = st.session_state.grammar_q
+    if q:
+        st.write(q["question"])
+        choice = st.radio("알맞은 답을 고르세요.", q["options"], key="grammar_choice")
+        if st.button("문법 정답 확인", disabled=st.session_state.grammar_done):
+            st.session_state.grammar_done = True
+            st.session_state.grammar_total += 1
+            if choice == q["answer"]:
+                st.session_state.grammar_score += 1
+                st.success("정답이에요! 🎉")
+            else:
+                st.error(f"정답은 ‘{q['answer']}’예요.")
+            st.info(q["explanation"])
+
+elif page == "📝 모의시험":
+    hero("한국어 실전 모의시험 📝", "TOPIK 유형을 참고해 새로 만든 연습 문제예요. 공식 시험 문항은 아니에요.")
+    count = st.selectbox("문제 수", [5, 8, 10])
+    if st.button("시험 시작 / 새 시험", type="primary"):
+        st.session_state.exam_questions = random.sample(TOPIK, count)
+        st.session_state.exam_submitted = False
+        st.session_state.exam_answers = {}
+
+    questions = st.session_state.exam_questions
+    if questions:
+        if "exam_answers" not in st.session_state:
+            st.session_state.exam_answers = {}
+        for i, q in enumerate(questions):
+            st.markdown(f"**문제 {i + 1}. {q['q']}**")
+            st.session_state.exam_answers[i] = st.radio(
+                f"{i + 1}번 답",
+                q["options"],
+                index=None,
+                key=f"exam_{i}_{len(questions)}",
+            )
+        if st.button("시험 제출", disabled=st.session_state.exam_submitted):
+            st.session_state.exam_submitted = True
+            score = sum(
+                1 for i, q in enumerate(questions)
+                if st.session_state.exam_answers.get(i) == q["answer"]
+            )
+            st.session_state.exam_history.append(
+                {"score": score, "total": len(questions)}
+            )
+        if st.session_state.exam_submitted:
+            score = sum(
+                1 for i, q in enumerate(questions)
+                if st.session_state.exam_answers.get(i) == q["answer"]
+            )
+            st.metric("시험 점수", f"{score} / {len(questions)}", f"{round(score / len(questions) * 100)}%")
+            for i, q in enumerate(questions):
+                chosen = st.session_state.exam_answers.get(i)
+                if chosen == q["answer"]:
+                    st.success(f"{i + 1}번 정답: {q['answer']}")
+                else:
+                    st.error(f"{i + 1}번 정답: {q['answer']} (내 답: {chosen or '미응답'})")
+                st.caption(q["why"])
+    else:
+        st.info("시험 시작 버튼을 눌러 문제를 받아 보세요.")
+
+elif page == "📈 학습 기록":
+    hero("나의 학습 기록 📈", "지금까지의 학습과 시험 결과를 확인해요.")
+    a, b, c = st.columns(3)
+    a.metric("학습한 단어", f"{len(st.session_state.learned)}개")
+    b.metric("퀴즈 정답", f"{st.session_state.word_score + st.session_state.grammar_score}개")
+    c.metric("모의시험 응시", f"{len(st.session_state.exam_history)}회")
+
+    st.markdown("### 복습 단어")
+    if st.session_state.saved:
+        st.write(" · ".join(st.session_state.saved))
+        if st.button("복습 목록 비우기"):
+            st.session_state.saved = []
+            st.rerun()
+    else:
+        st.caption("단어 학습실에서 복습할 단어를 저장해 보세요.")
+
+    total = st.session_state.word_total + st.session_state.grammar_total
+    correct = st.session_state.word_score + st.session_state.grammar_score
+    st.markdown("### 퀴즈 정답률")
+    if total:
+        st.progress(correct / total)
+        st.write(f"{correct} / {total}문제 정답 ({round(correct / total * 100)}%)")
+    else:
+        st.caption("퀴즈를 풀면 결과가 여기에 표시돼요.")
+
+    st.markdown("### 모의시험 기록")
+    if st.session_state.exam_history:
+        for i, result in enumerate(st.session_state.exam_history, 1):
+            st.write(f"{i}. {result['score']} / {result['total']}점")
+    else:
+        st.caption("아직 모의시험 기록이 없어요.")
+
+    st.warning("학습 기록은 현재 세션에 저장되며 서버가 재시작되면 초기화될 수 있어요.")
