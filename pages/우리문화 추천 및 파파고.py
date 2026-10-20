@@ -1,7 +1,11 @@
+
 import streamlit as st
 import requests
 import random
 
+# -----------------------------
+# 페이지 설정
+# -----------------------------
 st.set_page_config(
     page_title="다정한 한국 - 우리문화 추천 및 번역",
     page_icon="🇰🇷",
@@ -15,7 +19,7 @@ st.set_page_config(
 st.markdown("""
 <style>
 .stApp {
-    background: #DCECF8;
+    background-color: #DCECF8;
     color: #243746;
 }
 
@@ -30,7 +34,7 @@ h1, h2, h3, h4 {
 }
 
 [data-testid="stSidebar"] {
-    background: #C7E0F3;
+    background-color: #C7E0F3;
     border-right: 2px solid #243746;
 }
 
@@ -40,32 +44,32 @@ h1, h2, h3, h4 {
     color: #243746;
 }
 
-/* 왼쪽 메뉴 버튼만 크게 변경 */
-div[data-testid="stSidebar"] div.stButton > button {
+/* 왼쪽 메뉴 버튼 */
+[data-testid="stSidebar"] div.stButton > button {
     width: 100%;
     min-height: 82px;
     font-size: 21px;
+    font-weight: 700;
     line-height: 1.35;
-    font-weight: 750;
     border-radius: 18px;
     border: 2px solid #243746;
-    background: #FFFFFF;
+    background-color: #FFFFFF;
     color: #243746;
     padding: 15px 12px;
-    margin: 6px 0 10px 0;
+    margin: 6px 0;
     white-space: normal;
     text-align: left;
 }
 
-div[data-testid="stSidebar"] div.stButton > button:hover {
-    background: #A9D0EE;
-    border: 2px solid #243746;
+[data-testid="stSidebar"] div.stButton > button:hover {
+    background-color: #A9D0EE;
     color: #243746;
+    border: 2px solid #243746;
 }
 
-div[data-testid="stSidebar"] div.stButton > button:focus {
-    border: 3px solid #243746;
+[data-testid="stSidebar"] div.stButton > button:focus {
     color: #243746;
+    border: 3px solid #243746;
 }
 
 .small-note {
@@ -343,4 +347,377 @@ PLACES = {
         {
             "name": "첨성대",
             "kind": "역사",
-            "description": "신라 시대
+            "description": "신라 시대 천문 관측과 관련된 역사 유적이에요.",
+            "tip": "주변 유적과 함께 천천히 둘러보세요.",
+        },
+    ],
+}
+
+
+# -----------------------------
+# 메뉴 상태
+# -----------------------------
+MENU_ITEMS = [
+    "🏠 시작 화면",
+    "🇰🇷 우리나라의 문화",
+    "🗣️ 생활 한국어",
+    "🌐 번역기",
+    "🍜 음식 추천",
+    "🗺️ 관광지 추천",
+]
+
+if "menu" not in st.session_state:
+    st.session_state.menu = MENU_ITEMS[0]
+
+if "translate_text" not in st.session_state:
+    st.session_state.translate_text = ""
+
+if "food_results" not in st.session_state:
+    st.session_state.food_results = None
+
+
+# -----------------------------
+# 왼쪽 메뉴
+# -----------------------------
+with st.sidebar:
+    st.markdown("# 🇰🇷 다정한 한국")
+    st.caption("한국 생활과 여행을 도와주는 작은 안내서")
+    st.divider()
+
+    for menu_name in MENU_ITEMS:
+        if st.button(
+            menu_name,
+            key=f"menu_{menu_name}",
+            use_container_width=True,
+        ):
+            st.session_state.menu = menu_name
+            st.rerun()
+
+    st.divider()
+    st.caption("원하는 메뉴를 눌러 시작해 보세요.")
+    st.caption("※ 번역은 외부 무료 번역 서비스를 이용해요.")
+
+
+# -----------------------------
+# 상단 제목
+# -----------------------------
+st.markdown("# 다정한 한국")
+st.write("한국의 문화와 생활 표현을 배우고, 음식과 여행지를 찾아보세요.")
+
+
+# -----------------------------
+# 시작 화면
+# -----------------------------
+if st.session_state.menu == "🏠 시작 화면":
+    st.subheader("반가워요! 👋")
+    st.write(
+        "이곳에서는 한국 문화 예절을 알아보고, 여행지와 음식을 "
+        "추천받고, 간단한 번역도 할 수 있어요."
+    )
+    st.write("왼쪽의 큰 메뉴 버튼을 눌러 원하는 기능으로 이동해 보세요.")
+
+    col1, col2, col3 = st.columns(3)
+
+    with col1:
+        st.markdown("### 🇰🇷 문화 배우기")
+        st.write("인사, 식사 예절, 대중교통 등 한국 생활 문화를 알아봐요.")
+        if st.button("문화 알아보기", key="home_culture"):
+            st.session_state.menu = "🇰🇷 우리나라의 문화"
+            st.rerun()
+
+    with col2:
+        st.markdown("### 🌐 간단 번역")
+        st.write("한국어와 여러 언어 사이의 문장을 번역해 봐요.")
+        if st.button("번역기 열기", key="home_translate"):
+            st.session_state.menu = "🌐 번역기"
+            st.rerun()
+
+    with col3:
+        st.markdown("### 🗺️ 여행 추천")
+        st.write("지역을 선택해 대표 관광지와 여행 팁을 확인해요.")
+        if st.button("여행지 찾아보기", key="home_places"):
+            st.session_state.menu = "🗺️ 관광지 추천"
+            st.rerun()
+
+    st.markdown("## 이 앱에서 할 수 있는 일")
+    st.info(
+        "문화 예절 알아보기 · 생활 한국어 표현 익히기 · 문장 번역하기 · "
+        "한국 음식 추천받기 · 지역별 관광지 둘러보기"
+    )
+
+
+# -----------------------------
+# 한국 문화
+# -----------------------------
+elif st.session_state.menu == "🇰🇷 우리나라의 문화":
+    st.subheader("🇰🇷 우리나라의 문화")
+    st.write("한국 생활에서 자주 만나는 예절과 문화를 주제별로 살펴보세요.")
+
+    selected_culture = st.selectbox(
+        "궁금한 주제를 선택하세요",
+        list(CULTURE.keys()),
+    )
+
+    info = CULTURE[selected_culture]
+    st.markdown(f"### {info['emoji']} {selected_culture}")
+    st.write(info["summary"])
+    st.markdown("**알아두면 좋은 점**")
+
+    for point in info["points"]:
+        st.markdown(f"- {point}")
+
+    st.markdown("**이럴 때 쓸 수 있어요**")
+    st.success(info["phrase"])
+
+    st.caption(
+        "문화와 예절은 사람이나 상황에 따라 다를 수 있어요. "
+        "상대방을 존중하며 자연스럽게 배워 보세요."
+    )
+
+
+# -----------------------------
+# 생활 한국어
+# -----------------------------
+elif st.session_state.menu == "🗣️ 생활 한국어":
+    st.subheader("🗣️ 생활 한국어")
+    st.write("일상에서 자주 사용하는 표현과 뜻을 확인해 보세요.")
+
+    topic = st.selectbox("상황 선택", list(PHRASES.keys()))
+
+    for index, (korean, english) in enumerate(PHRASES[topic], start=1):
+        st.markdown(f"### {index}. {korean}")
+        st.write(f"영어 뜻: {english}")
+
+        if st.button(
+            "이 표현을 번역기에 넣기",
+            key=f"phrase_{topic}_{index}",
+        ):
+            st.session_state.translate_text = korean
+            st.session_state.menu = "🌐 번역기"
+            st.rerun()
+
+        st.divider()
+
+    st.info(
+        "'주세요', '감사합니다', '실례합니다' 같은 표현은 "
+        "여러 상황에서 유용해요."
+    )
+
+
+# -----------------------------
+# 번역기
+# -----------------------------
+elif st.session_state.menu == "🌐 번역기":
+    st.subheader("🌐 번역기")
+    st.write("문장을 입력하고 언어를 선택하면 번역 결과를 확인할 수 있어요.")
+
+    lang_names = list(LANGUAGES.keys())
+    col1, col2 = st.columns(2)
+
+    with col1:
+        source_name = st.selectbox(
+            "입력 언어",
+            lang_names,
+            index=0,
+        )
+
+    with col2:
+        target_name = st.selectbox(
+            "번역할 언어",
+            lang_names,
+            index=lang_names.index("영어"),
+        )
+
+    user_text = st.text_area(
+        "번역할 문장",
+        value=st.session_state.translate_text,
+        height=160,
+        placeholder="예: 안녕하세요. 한국에 처음 왔어요.",
+        key="translation_input",
+    )
+
+    if st.button("번역하기", type="primary", use_container_width=True):
+        if not user_text.strip():
+            st.warning("먼저 번역할 문장을 입력해 주세요.")
+
+        elif source_name == target_name:
+            st.info("입력 언어와 번역할 언어가 같아요. 다른 언어를 선택해 주세요.")
+
+        else:
+            try:
+                with st.spinner("번역 중이에요..."):
+                    response = requests.get(
+                        "https://api.mymemory.translated.net/get",
+                        params={
+                            "q": user_text,
+                            "langpair": (
+                                f"{LANGUAGES[source_name]}|"
+                                f"{LANGUAGES[target_name]}"
+                            ),
+                        },
+                        timeout=15,
+                    )
+                    response.raise_for_status()
+                    data = response.json()
+                    translated = data.get("responseData", {}).get(
+                        "translatedText", ""
+                    )
+
+                if translated:
+                    st.markdown("### 번역 결과")
+                    st.write(translated)
+                else:
+                    st.error(
+                        "번역 결과를 가져오지 못했어요. "
+                        "잠시 후 다시 시도해 주세요."
+                    )
+
+            except requests.RequestException:
+                st.error(
+                    "번역 서비스에 연결하지 못했어요. "
+                    "인터넷 연결을 확인하고 다시 시도해 주세요."
+                )
+
+            except (ValueError, TypeError, KeyError):
+                st.error(
+                    "번역 결과를 읽는 중 문제가 생겼어요. "
+                    "다른 문장으로 다시 시도해 주세요."
+                )
+
+    st.caption(
+        "이 앱은 공식 파파고 API가 아닌 MyMemory 무료 번역 서비스를 사용합니다."
+    )
+
+
+# -----------------------------
+# 음식 추천
+# -----------------------------
+elif st.session_state.menu == "🍜 음식 추천":
+    st.subheader("🍜 한국 음식 추천")
+    st.write("좋아하는 맛이나 음식 종류를 선택해 어울리는 한국 음식을 찾아보세요.")
+
+    taste_options = [
+        "상관없음", "달콤짭짤", "매콤", "담백", "고소", "국물"
+    ]
+    type_options = ["상관없음"] + sorted(
+        {item["type"] for item in FOODS.values()}
+    )
+
+    col1, col2 = st.columns(2)
+
+    with col1:
+        taste = st.selectbox("좋아하는 맛", taste_options)
+
+    with col2:
+        food_type = st.selectbox("먹고 싶은 종류", type_options)
+
+    filtered = []
+
+    for name, item in FOODS.items():
+        taste_ok = (
+            taste == "상관없음"
+            or (taste == "달콤짭짤" and "달콤짭짤" in item["taste"])
+            or (
+                taste == "매콤"
+                and (
+                    "매콤" in item["taste"]
+                    or "얼큰" in item["taste"]
+                )
+            )
+            or (taste == "담백" and "담백" in item["taste"])
+            or (taste == "고소" and "고소" in item["taste"])
+            or (
+                taste == "국물"
+                and (
+                    "국물" in item["good_for"]
+                    or item["type"] in ["찌개", "국물"]
+                )
+            )
+        )
+
+        type_ok = (
+            food_type == "상관없음"
+            or item["type"] == food_type
+        )
+
+        if taste_ok and type_ok:
+            filtered.append((name, item))
+
+    if st.button("음식 추천받기", type="primary", use_container_width=True):
+        random.shuffle(filtered)
+        st.session_state.food_results = filtered[:3]
+
+    results = st.session_state.food_results
+
+    if results is None:
+        results = filtered[:3]
+
+    if not results:
+        st.warning(
+            "선택한 조건에 맞는 음식이 없어요. 다른 조건을 골라 보세요."
+        )
+    else:
+        for name, item in results:
+            st.markdown(f"### {item['emoji']} {name}")
+            st.write(item["description"])
+            st.write(f"**맛:** {item['taste']}")
+            st.write(f"**추천 대상:** {item['good_for']}")
+            st.divider()
+
+    st.caption(
+        "음식에 포함된 재료는 가게마다 다를 수 있어요. "
+        "알레르기가 있다면 주문 전에 재료를 확인해 주세요."
+    )
+
+
+# -----------------------------
+# 관광지 추천
+# -----------------------------
+elif st.session_state.menu == "🗺️ 관광지 추천":
+    st.subheader("🗺️ 한국 관광지 추천")
+    st.write("방문하고 싶은 지역과 여행 스타일을 골라 보세요.")
+
+    region = st.selectbox("지역 선택", list(PLACES.keys()))
+
+    all_kinds = sorted({
+        place["kind"]
+        for places in PLACES.values()
+        for place in places
+    })
+
+    style = st.selectbox(
+        "여행 스타일",
+        ["모두 보기"] + all_kinds,
+    )
+
+    places = PLACES[region]
+
+    if style != "모두 보기":
+        places = [
+            place for place in places
+            if place["kind"] == style
+        ]
+
+    if not places:
+        st.warning(
+            "해당 지역에는 선택한 유형의 추천지가 아직 없어요. "
+            "'모두 보기'를 선택해 주세요."
+        )
+
+    for place in places:
+        st.markdown(f"### 📍 {place['name']}")
+        st.markdown(f"**유형:** {place['kind']}")
+        st.write(place["description"])
+        st.info(f"여행 팁: {place['tip']}")
+        st.divider()
+
+    st.caption(
+        "방문 전 운영 시간, 입장료, 교통편과 현장 안내를 확인해 주세요."
+    )
+
+
+# -----------------------------
+# 하단 안내
+# -----------------------------
+st.divider()
+st.caption("다정한 한국 · 한국 문화와 생활을 더 쉽게 알아보는 안내 앱")
