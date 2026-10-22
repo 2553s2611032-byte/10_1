@@ -6,4 +6,8 @@ deep-translator>=1.11.4,<2.0
 gTTS>=2.5.3,<3.0
 streamlit>=1.32,<2.0
 
-
+streamlit
+requests
+folium
+streamlit-folium
+geopy
