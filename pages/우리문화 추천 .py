@@ -1,96 +1,145 @@
+
 import streamlit as st
 
 st.set_page_config(
-    page_title="다정한 한국 - 우리문화 추천",
+    page_title="우리 문화 추천",
     page_icon="🇰🇷",
-    layout="wide",
+    layout="wide"
 )
 
-# -----------------------------
-# 기본 디자인
-# -----------------------------
-st.markdown(
-    """
-    <style>
-    .stApp {
-        background-color: #eaf4fb;
-        color: #243746;
-    }
-    .block-container {
-        padding-top: 1.5rem;
-        padding-bottom: 1rem;
-        max-width: 1400px;
-    }
-    [data-testid="stSidebar"] {
-        background-color: #d5e9f7;
-        border-right: 1px solid #9bbbd2;
-    }
-    [data-testid="stSidebar"] .stButton button {
-        width: 100%;
-        min-height: 58px;
-        font-size: 17px;
-        font-weight: 700;
-        border: 1px solid #6f98b6;
-        border-radius: 12px;
-        background: white;
-        color: #243746;
-        white-space: normal;
-    }
-    [data-testid="stSidebar"] .stButton button:hover {
-        background: #c0def2;
-        border-color: #477da2;
-    }
-    div[data-testid="stVerticalBlockBorderWrapper"] {
-        background-color: white;
-        border-radius: 14px;
-    }
-    </style>
-    """,
-    unsafe_allow_html=True,
+st.title("우리 문화 추천")
+st.write("한국 생활이 낯선 분들을 위한 문화, 음식, 관광지 안내")
+
+st.sidebar.title("메뉴")
+menu = st.sidebar.radio(
+    "원하는 항목을 선택하세요.",
+    ["우리 문화와 예절", "한국 음식 추천", "한국 관광지 추천"]
 )
 
-# -----------------------------
-# 자료
-# -----------------------------
-CULTURE = {
-    "인사와 예절": {
-        "emoji": "🙇",
-        "summary": "한국에서는 인사와 상대방을 존중하는 태도를 중요하게 여겨요.",
-        "points": [
-            "처음 만난 사람에게는 '안녕하세요'라고 인사해요.",
-            "어른이나 처음 만난 사람에게는 존댓말을 쓰는 것이 무난해요.",
-            "감사하거나 사과할 때는 말로 마음을 표현해요.",
-            "상대방의 상황과 문화를 존중해요.",
+if menu == "우리 문화와 예절":
+    st.header("한국 문화와 예절")
+    st.write("한국에서 생활할 때 알아 두면 좋은 예절을 소개합니다.")
+
+    with st.expander("인사 예절"):
+        st.write("한국에서는 인사할 때 고개를 가볍게 숙이기도 합니다.")
+        st.write("처음 만나는 사람이나 어른에게는 존댓말을 사용하는 것이 좋습니다.")
+
+    with st.expander("식사 예절"):
+        st.write("어른이 먼저 식사를 시작할 때까지 기다리는 것이 일반적인 예절입니다.")
+        st.write("식사 중에는 다른 사람을 배려하고 조용히 대화합니다.")
+
+    with st.expander("대중교통 예절"):
+        st.write("버스나 지하철에서는 줄을 서서 차례대로 탑니다.")
+        st.write("노약자, 임산부 등에게 자리를 양보할 수 있습니다.")
+
+    with st.expander("쓰레기 분리배출"):
+        st.write("일반 쓰레기, 음식물 쓰레기, 재활용품을 구분해서 버립니다.")
+        st.write("지역마다 배출 방법이 다를 수 있으므로 지역 안내를 확인합니다.")
+
+elif menu == "한국 음식 추천":
+    st.header("한국 음식 추천")
+    st.write("먹고 싶은 종류를 선택하면 관련 음식을 추천합니다.")
+
+    food_type = st.selectbox(
+        "음식 종류",
+        ["전체", "밥과 식사", "면 요리", "간식", "매운 음식이 아닌 음식"]
+    )
+
+    foods = [
+        {
+            "name": "비빔밥",
+            "type": "밥과 식사",
+            "description": "밥에 여러 채소와 양념을 넣어 비벼 먹는 음식입니다."
+        },
+        {
+            "name": "불고기",
+            "type": "밥과 식사",
+            "description": "양념한 고기를 구워 먹는 음식입니다."
+        },
+        {
+            "name": "김밥",
+            "type": "간식",
+            "description": "김에 밥과 여러 재료를 넣어 말아 만든 음식입니다."
+        },
+        {
+            "name": "잡채",
+            "type": "밥과 식사",
+            "description": "당면과 채소 등을 볶아 만든 음식입니다."
+        },
+        {
+            "name": "칼국수",
+            "type": "면 요리",
+            "description": "밀가루 반죽을 썰어 국물에 끓인 면 요리입니다."
+        },
+        {
+            "name": "떡볶이",
+            "type": "간식",
+            "description": "떡에 양념을 넣고 조리한 한국의 대표적인 간식입니다."
+        },
+        {
+            "name": "삼계탕",
+            "type": "매운 음식이 아닌 음식",
+            "description": "닭과 여러 재료를 넣고 끓인 국물 음식입니다."
+        }
+    ]
+
+    if food_type == "전체":
+        selected_foods = foods
+    elif food_type == "매운 음식이 아닌 음식":
+        selected_foods = [
+            food for food in foods
+            if food["type"] == "매운 음식이 아닌 음식"
+            or food["name"] in ["불고기", "잡채", "칼국수", "비빔밥"]
+        ]
+    else:
+        selected_foods = [
+            food for food in foods
+            if food["type"] == food_type
+        ]
+
+    for food in selected_foods:
+        st.subheader(food["name"])
+        st.write(food["description"])
+        st.divider()
+
+    st.caption("음식의 재료와 알레르기 유발 성분은 주문 전에 확인하세요.")
+
+elif menu == "한국 관광지 추천":
+    st.header("한국 관광지 추천")
+    st.write("지역을 선택하면 방문할 만한 장소를 소개합니다.")
+
+    region = st.selectbox(
+        "지역 선택",
+        ["서울", "부산", "제주도", "경주"]
+    )
+
+    places = {
+        "서울": [
+            ("경복궁", "한국의 전통 건축과 궁궐 문화를 살펴볼 수 있습니다."),
+            ("남산서울타워", "서울의 도시 풍경을 감상할 수 있습니다."),
+            ("인사동", "전통 공예품과 한국 문화를 경험할 수 있습니다.")
         ],
-        "tip": "처음 만난 사람에게 '안녕하세요'라고 인사해 보세요.",
-    },
-    "식사 예절": {
-        "emoji": "🍚",
-        "summary": "함께 식사할 때는 서로 배려하는 태도가 중요해요.",
-        "points": [
-            "함께 식사하는 사람을 배려하며 식사해요.",
-            "공용 음식은 집게나 공용 수저를 이용해요.",
-            "다른 사람이 불편하지 않도록 소리를 조절해요.",
-            "식사 후에는 '잘 먹었습니다'라고 감사 인사를 할 수 있어요.",
+        "부산": [
+            ("해운대해수욕장", "바다 풍경을 즐길 수 있는 해변입니다."),
+            ("감천문화마을", "다양한 색상의 건물과 예술 작품을 볼 수 있습니다."),
+            ("자갈치시장", "부산의 해산물과 시장 문화를 경험할 수 있습니다.")
         ],
-        "tip": "음식을 함께 먹을 때는 다른 사람도 배려해요.",
-    },
-    "대중교통 예절": {
-        "emoji": "🚌",
-        "summary": "버스와 지하철에서는 많은 사람이 함께 이용하므로 배려가 필요해요.",
-        "points": [
-            "줄을 서서 차례대로 타고 내려요.",
-            "내리는 사람이 먼저 내릴 수 있도록 기다려요.",
-            "통화와 음악 소리는 작게 해요.",
-            "교통약자석은 필요한 사람을 배려해 이용해요.",
-            "혼잡할 때는 가방을 앞으로 메어 다른 사람을 배려해요.",
+        "제주도": [
+            ("성산일출봉", "화산 활동으로 형성된 자연 명소입니다."),
+            ("한라산", "제주도의 대표적인 산입니다."),
+            ("협재해수욕장", "맑은 바다와 해변 풍경을 감상할 수 있습니다.")
         ],
-        "tip": "교통카드 사용법과 환승 방법을 미리 알아두면 편리해요.",
-    },
-    "명절과 전통문화": {
-        "emoji": "🎎",
-        "summary": "설날과 추석은 한국의 대표적인 명절이에요.",
-        "points": [
-            "설날에는 떡국을 먹거나 새해 인사를 나누기도 해요.",
-            "추석에는 송편을 먹고 가족과 시간을 보내기도 해요.",
-            "한복은 한국의 전통 의상이에요.",
+        "경주": [
+            ("불국사", "한국의 역사와 불교 문화를 알아볼 수 있습니다."),
+            ("첨성대", "신라 시대의 천문 관측 시설로 알려져 있습니다."),
+            ("대릉원", "신라 시대의 고분을 살펴볼 수 있는 역사 유적지입니다.")
+        ]
+    }
+
+    for name, description in places[region]:
+        st.subheader(name)
+        st.write(description)
+        st.divider()
+
+st.sidebar.divider()
+st.sidebar.caption("한국 생활에 필요한 정보를 쉽게 알아보세요.")
